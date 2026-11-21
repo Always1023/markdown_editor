@@ -1,0 +1,52 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "monaco-editor/esm/vs/base/common/uri.js": [
+        "src/types/monaco-uri-ambient.d.ts"
+      ],
+      "monaco-editor/esm/vs/base/common/async.js": [
+        "src/types/monaco-esm-async.d.ts"
+      ],
+      "monaco-editor/esm/vs/basic-languages/cpp/cpp.js": [
+        "src/types/monaco-esm-basic-languages.d.ts"
+      ],
+      "monaco-editor/esm/vs/basic-languages/markdown/markdown.js": [
+        "src/types/monaco-esm-basic-languages.d.ts"
+      ],
+      "monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js": [
+        "src/types/monaco-esm-clipboard.d.ts"
+      ],
+      "monaco-editor/esm/vs/editor/browser/controller/editContext/clipboardUtils.js": [
+        "src/types/monaco-esm-clipboard.d.ts"
+      ],
+      "monaco-editor/esm/vs/editor/contrib/gotoSymbol/browser/peek/referencesWidget.js": [
+        "src/types/monaco-esm-references-widget.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/app",
+    "src/app-shell",
+    "src/hooks",
+    "src/i18n",
+    "src/diagnostics",
+    "src/preload",
+    "src/env.d.ts",
+    "tests",
+    "src/types/**/*.d.ts",
+    "src/assets/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "out",
+    "dist"
+  ]
+}

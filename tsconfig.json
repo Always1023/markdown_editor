@@ -1,0 +1,63 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "monaco-editor/esm/vs/base/common/uri.js": [
+        "src/types/monaco-uri-ambient.d.ts"
+      ],
+      "monaco-editor/esm/vs/base/common/async.js": [
+        "src/types/monaco-esm-async.d.ts"
+      ],
+      "monaco-editor/esm/vs/basic-languages/cpp/cpp.js": [
+        "src/types/monaco-esm-basic-languages.d.ts"
+      ],
+      "monaco-editor/esm/vs/basic-languages/markdown/markdown.js": [
+        "src/types/monaco-esm-basic-languages.d.ts"
+      ],
+      "monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js": [
+        "src/types/monaco-esm-clipboard.d.ts"
+      ],
+      "monaco-editor/esm/vs/editor/browser/controller/editContext/clipboardUtils.js": [
+        "src/types/monaco-esm-clipboard.d.ts"
+      ],
+      "monaco-editor/esm/vs/editor/contrib/gotoSymbol/browser/peek/referencesWidget.js": [
+        "src/types/monaco-esm-references-widget.d.ts"
+      ]
+    },
+    "types": [
+      "node",
+      "vite/client"
+    ]
+  },
+  "include": [
+    "src",
+    "electron",
+    "electron.vite.config.ts",
+    "vitest.config.ts",
+    "tests"
+  ]
+}

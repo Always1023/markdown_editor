@@ -1,0 +1,21 @@
+packages:
+  - .
+
+# 与 Orca 相同的三个补丁（config/patches 拷贝而来）
+patchedDependencies:
+  '@tiptap/markdown@3.31.3': patches/@tiptap__markdown@3.31.3.patch
+  '@tiptap/extension-list@3.31.3': patches/@tiptap__extension-list@3.31.3.patch
+  'prosemirror-view@1.42.3': patches/prosemirror-view@1.42.3.patch
+
+# 与 Orca pnpm-workspace.yaml 相同的 peer 补齐（@tiptap/extension-list 缺 prosemirror-model）
+packageExtensions:
+  '@tiptap/extension-list':
+    dependencies:
+      prosemirror-model: ^1.0.0
+  electron-vite:
+    peerDependencies:
+      electron: '*'
+
+# 钉住 prosemirror-view 到补丁目标版本（Orca 锁定 1.42.3）
+overrides:
+  prosemirror-view: 1.42.3
