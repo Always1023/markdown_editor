@@ -28,7 +28,7 @@
 ## 阶段 2 · 文件服务与自动保存（M2）
 
 ### [build]
-- I-007 · feature · 待办 · FileService 主进程 IPC 接线（fs 子集 + runtime files.* 路由 + writeIfUnchanged CAS）· 模型验收 · B2
+- I-007 · feature · 进行中 · FileService 主进程 IPC 接线（fs 子集 + runtime files.* 路由 + writeIfUnchanged CAS）· 模型验收 · B2
 - I-008 · feature · 待办 · 文件 watch 与变更事件映射（chokidar → onFsChanged）· 模型验收 · B2
 
 ### [editor]
