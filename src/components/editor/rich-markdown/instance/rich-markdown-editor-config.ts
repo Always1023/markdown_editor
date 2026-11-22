@@ -227,10 +227,12 @@ export function createRichMarkdownEditorConfig(params: EditorConfigParams): UseE
       handleClick: linkDomEvents.handleProseMirrorClick
     },
     onFocus: () => {
-      window.api.ui.setMarkdownEditorFocused(true)
+      // 本产品 preload 未接线 ui 面（无窗口 chrome 聚焦联动）：缺通道时跳过，
+      // 不让聚焦遥测抛未捕获异常打断编辑。
+      window.api?.ui?.setMarkdownEditorFocused?.(true)
     },
     onBlur: () => {
-      window.api.ui.setMarkdownEditorFocused(false)
+      window.api?.ui?.setMarkdownEditorFocused?.(false)
       clearAnnotationTarget()
       params.flushPendingSerialization()
     },

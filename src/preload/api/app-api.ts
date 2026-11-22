@@ -20,6 +20,13 @@ import type { DesktopRelayWrite } from '../../shared/workspace-session/desktop-r
 export type AppApi = {
   /** 本地工作根（demo 文件 IO 的落盘目录；单机形态取第一个根）。 */
   getWorkDir?: () => Promise<{ workDir: string }>
+  /** 系统目录对话框选择并注册运行时工作根；取消时 workDir 为 null。 */
+  chooseWorkDir?: () => Promise<{ workDir: string | null; canceled: boolean }>
+  /** runtime-call 层的 worktreeId → 根路径注册（换根后 document-images 等跟随）。 */
+  registerRuntimeWorktreeRoots?: (args: {
+    worktreeId: string
+    rootPath: string
+  }) => Promise<{ ok: boolean }>
   getSystemLanguageDetection?: (
     browserPreferences?: readonly string[]
   ) => Promise<UiLanguageDetection | null>

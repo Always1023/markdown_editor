@@ -31,26 +31,14 @@ export function installDemoWorkspaceState(store: AppStoreApi, workDir: string): 
   }) as unknown as Partial<AppState>)
 }
 
-export type DemoFileIoOptions = {
-  store: AppStoreApi
-  /** 真实工作目录（主进程 MARKDOWN_EDITOR_ROOTS 声明的根之内）。 */
-  workDir: string
-  /** 默认 welcome.md。 */
-  fileName?: string
-  /** 目录里没有目标文件时创建的示例内容。 */
-  demoContent: string
-  /** clean 跟随磁盘重载后的新内容（编辑器用它刷新缓冲）。 */
-  onExternalReload: (content: string) => void
-}
-
-export type DemoFileIoController = {
-  fileId: string
-  filePath: string
-  /** 编辑器初始内容（磁盘上的当前文本）。 */
-  content: string
-  dispose(): void
-  /** Ctrl+S / 手动保存：走 save queue（CAS 基线过期会被拒）。 */
-  saveNow(): Promise<void>
+/** 换根（I-011「打开文件夹」）：只更新工作区路径，不动用户的自动保存设置。 */
+export function updateDemoWorkspaceRoot(store: AppStoreApi, workDir: string): void {
+  store.setState((state) => ({
+    repos: [{ id: 'demo', path: workDir, kind: 'git', executionHostId: 'local' }],
+    worktreesByRepo: {
+      demo: [{ id: DEMO_WORKTREE_ID, repoId: 'demo', path: workDir, hostId: 'local', branch: '' }]
+    }
+  }) as unknown as Partial<AppState>)
 }
 
 function joinWorkDirPath(workDir: string, fileName: string): string {
@@ -61,20 +49,48 @@ function samePath(a: string, b: string): boolean {
   return a.replace(/\\/g, '/').toLowerCase() === b.replace(/\\/g, '/').toLowerCase()
 }
 
-export async function startDemoFileIo(options: DemoFileIoOptions): Promise<DemoFileIoController> {
-  const { store } = options
-  const fileName = options.fileName ?? 'welcome.md'
-  const filePath = joinWorkDirPath(options.workDir, fileName)
+/** filePath 相对 workDir 的展示路径（统一正斜杠；不在 workDir 下时回退文件名）。 */
+function relativeToWorkDir(workDir: string, filePath: string): string {
+  const normalizedWork = workDir.replace(/[\\/]+$/, '').replace(/\\/g, '/')
+  const normalizedFile = filePath.replace(/\\/g, '/')
+  if (normalizedFile.toLowerCase().startsWith(normalizedWork.toLowerCase() + '/')) {
+    return normalizedFile.slice(normalizedWork.length + 1)
+  }
+  return filePath.replace(/\\/g, '/').split('/').pop() ?? filePath
+}
+
+export type WorkspaceFileOptions = {
+  store: AppStoreApi
+  /** 真实工作目录（主进程工作根之内——env 声明或「打开文件夹」注册的根）。 */
+  workDir: string
+  /** 要打开的文件绝对路径。 */
+  filePath: string
+  /** clean 跟随磁盘重载后的新内容（编辑器用它刷新缓冲）。 */
+  onExternalReload: (content: string) => void
+}
+
+export type WorkspaceFileController = {
+  fileId: string
+  filePath: string
+  /** 打开时的磁盘内容（后续以 onExternalReload 通知更新）。 */
+  content: string
+  dispose(): void
+  /** Ctrl+S / 手动保存：走 save queue（CAS 基线过期会被拒）。 */
+  saveNow(): Promise<void>
+}
+
+// I-011：文件树「打开文件」装配点——登记 OpenFile、盖磁盘基线、按文件订阅 fs:changed
+// （自写回声过滤 / dirty 标外部修改 / clean 跟随重载，语义与 I-009 单文件版一致）。
+export async function openWorkspaceFile(
+  options: WorkspaceFileOptions
+): Promise<WorkspaceFileController> {
+  const { store, filePath } = options
   const bridge = window.api
   if (!bridge?.fs?.readFile || !bridge.fs.writeFile || !bridge.fs.onFsChanged) {
     throw new Error('[demo-file-io] window.api.fs 文件通道不可用（缺 preload 桥）')
   }
   const fs = bridge.fs
 
-  // 缺失即创建（直写仅限新建）；此后一切更新都走保存队列的 CAS。
-  if (!(await fs.pathExists({ filePath }))) {
-    await fs.writeFile({ filePath, content: options.demoContent })
-  }
   const loaded = await fs.readFile({ filePath })
   if (loaded.isBinary) {
     throw new Error(`[demo-file-io] 目标文件不是 UTF-8 文本：${filePath}`)
@@ -83,7 +99,7 @@ export async function startDemoFileIo(options: DemoFileIoOptions): Promise<DemoF
 
   store.getState().openFile({
     filePath,
-    relativePath: fileName,
+    relativePath: relativeToWorkDir(options.workDir, filePath),
     worktreeId: DEMO_WORKTREE_ID,
     language: 'markdown',
     mode: 'edit'
@@ -96,13 +112,14 @@ export async function startDemoFileIo(options: DemoFileIoOptions): Promise<DemoF
   // 保存前置基线：磁盘当前版本签名（editorSavePrecondition 的 guarded 输入）。
   store.getState().setLastKnownDiskSignature(fileId, getDiskBaselineSignature(content))
 
-  const detachAutosave = attachEditorAutosaveController(store)
+  let currentDiskContent = content
 
   const refreshFromDisk = async (): Promise<void> => {
     const latest = await fs.readFile({ filePath })
     if (latest.isBinary) {
       return
     }
+    currentDiskContent = latest.content
     options.onExternalReload(latest.content)
     store
       .getState()
@@ -140,11 +157,57 @@ export async function startDemoFileIo(options: DemoFileIoOptions): Promise<DemoF
     content,
     dispose: () => {
       unsubscribeFs()
-      detachAutosave()
     },
     saveNow: async () => {
-      const draft = store.getState().editorDrafts[fileId] ?? content
+      const draft = store.getState().editorDrafts[fileId] ?? currentDiskContent
       await requestEditorFileSave({ fileId, fallbackContent: draft })
+    }
+  }
+}
+
+export type DemoFileIoOptions = {
+  store: AppStoreApi
+  /** 真实工作目录（主进程 MARKDOWN_EDITOR_ROOTS 声明的根之内）。 */
+  workDir: string
+  /** 默认 welcome.md。 */
+  fileName?: string
+  /** 目录里没有目标文件时创建的示例内容。 */
+  demoContent: string
+  /** clean 跟随磁盘重载后的新内容（编辑器用它刷新缓冲）。 */
+  onExternalReload: (content: string) => void
+}
+
+export type DemoFileIoController = WorkspaceFileController
+
+export async function startDemoFileIo(options: DemoFileIoOptions): Promise<DemoFileIoController> {
+  const { store } = options
+  const fileName = options.fileName ?? 'welcome.md'
+  const filePath = joinWorkDirPath(options.workDir, fileName)
+  const bridge = window.api
+  if (!bridge?.fs?.readFile || !bridge.fs.writeFile || !bridge.fs.onFsChanged) {
+    throw new Error('[demo-file-io] window.api.fs 文件通道不可用（缺 preload 桥）')
+  }
+
+  // 缺失即创建（直写仅限新建）；此后一切更新都走保存队列的 CAS。
+  if (!(await bridge.fs.pathExists({ filePath }))) {
+    await bridge.fs.writeFile({ filePath, content: options.demoContent })
+  }
+
+  const controller = await openWorkspaceFile({
+    store,
+    workDir: options.workDir,
+    filePath,
+    onExternalReload: options.onExternalReload
+  })
+
+  // 自动保存控制器全局只挂一份（多文件共用同一个 save queue）；随首个文件生命周期开停。
+  const detachAutosave = attachEditorAutosaveController(store)
+
+  return {
+    ...controller,
+    dispose: () => {
+      controller.dispose()
+      detachAutosave()
     }
   }
 }

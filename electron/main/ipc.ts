@@ -1,7 +1,8 @@
 // IPC 注册：把 window.api.fs.* / window.api.runtime.call / worktrees:register 三条
 // 渲染端通道接到本地实现。通道名与 Orca 的 ipc/filesystem 对齐（fs:readFile 等）。
-import { ipcMain, shell } from 'electron'
+import { ipcMain, shell, dialog, BrowserWindow } from 'electron'
 import {
+  addRuntimeWorkRoot,
   copyPath,
   createDirectory,
   createFile,
@@ -107,6 +108,24 @@ export function registerLocalIpcHandlers(): void {
   handleSafe('fs:getWorkDir', async () => {
     const roots = localWorkRoots()
     return { workDir: roots[0] ?? process.cwd() }
+  })
+
+  // 「打开文件夹」（I-011）：系统目录对话框；选中即注册为运行时工作根，FileService
+  // 的越权检查自此放行该目录。取消时返回 canceled，不改当前根。
+  handleSafe('fs:chooseWorkDir', async (event) => {
+    const owner = BrowserWindow.fromWebContents(event.sender)
+    const options: Electron.OpenDialogOptions = {
+      title: '打开文件夹',
+      properties: ['openDirectory']
+    }
+    const result = owner
+      ? await dialog.showOpenDialog(owner, options)
+      : await dialog.showOpenDialog(options)
+    if (result.canceled || result.filePaths.length === 0) {
+      return { workDir: null, canceled: true }
+    }
+    const workDir = addRuntimeWorkRoot(result.filePaths[0])
+    return { workDir, canceled: false }
   })
 
   handleSafe('worktrees:register', async (_event, p) => {
