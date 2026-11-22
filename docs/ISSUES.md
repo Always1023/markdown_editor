@@ -46,7 +46,7 @@
 
 - I-011 · feature · 完成 · 文件树与文件夹工作区（打开文件夹 + 树形列表 + watch 刷新）· 模型验收（2026-11-22 自验 5 条全过）· B3a
 - I-012 · feature · 完成 · 多标签栏（tab bar / 切换 / 关闭 / dirty 标记）· 模型验收（2026-11-22 自验 6 探针全过）· B3a
-- I-013 · feature · 待办 · 三渲染模式（rich / source=Monaco / preview=markdown-preview）· 人验收（残差 1 条：切换观感）· B3a 段尾
+- I-013 · feature · 待验收 · 三渲染模式（rich / source=Monaco / preview=markdown-preview）· 人验收（残差 1 条：切换观感 A6，2026-11-22 机检 A1-A5 全过）· B3a 段尾
 - I-014 · feature · 待办 · TOC 面板（标题层级 + 点击跳转）· 模型验收 · B3b
 - I-015 · feature · 待办 · 编辑器搜索替换（Ctrl+F / 全部替换）· 模型验收 · B3b
 - I-016 · feature · 待办 · 设置面板（自动保存 / 缩放 / 拼写检查）· 模型验收 · B3b
