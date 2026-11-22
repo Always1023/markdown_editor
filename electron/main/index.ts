@@ -1,6 +1,7 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { registerLocalIpcHandlers } from './ipc'
+import { closeAllWatchers } from './fs-watch'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -42,5 +43,8 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
+  // 全部窗口销毁后释放 watcher 句柄；不关会挂住进程与目录删除（A4 资源回收）。
+  void closeAllWatchers().finally(() => {
+    if (process.platform !== 'darwin') app.quit()
+  })
 })

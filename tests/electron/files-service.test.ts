@@ -164,9 +164,11 @@ describe('I-007 补充：importExternalPaths 与 listMarkdownDocuments', () => {
 
     const first = await importExternalPaths({ sourcePaths: [source], destDir: docsDir })
     const second = await importExternalPaths({ sourcePaths: [source], destDir: docsDir })
-    expect(first.results[0]).toMatchObject({ status: 'imported', renamed: false })
-    expect(second.results[0]).toMatchObject({ status: 'imported', renamed: true })
-    expect(first.results[0].destPath).not.toBe(second.results[0].destPath)
+    const firstImported = first.results[0]?.status === 'imported' ? first.results[0] : null
+    const secondImported = second.results[0]?.status === 'imported' ? second.results[0] : null
+    expect(firstImported?.renamed).toBe(false)
+    expect(secondImported?.renamed).toBe(true)
+    expect(firstImported?.destPath).not.toBe(secondImported?.destPath)
 
     const documents = await listMarkdownDocuments({ rootPath: root })
     const names = documents.map((document) => document.filePath)

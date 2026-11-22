@@ -21,7 +21,15 @@ const api = {
     stat: (args: unknown) => invoke('fs:stat', args),
     pathExists: (args: unknown) => invoke('fs:pathExists', args),
     listMarkdownDocuments: (args: unknown) => invoke('fs:listMarkdownDocuments', args),
-    importExternalPaths: (args: unknown) => invoke('fs:importExternalPaths', args)
+    importExternalPaths: (args: unknown) => invoke('fs:importExternalPaths', args),
+    watchWorktree: (args: unknown) => invoke('fs:watchWorktree', args),
+    unwatchWorktree: (args: unknown) => invoke('fs:unwatchWorktree', args),
+    onFsChanged: (callback: (payload: unknown) => void): (() => void) => {
+      const listener = (_event: Electron.IpcRendererEvent, payload: unknown) =>
+        callback(payload)
+      ipcRenderer.on('fs:changed', listener)
+      return () => ipcRenderer.removeListener('fs:changed', listener)
+    }
   },
   runtime: {
     call: (args: { method: string; params?: unknown }) => invoke('runtime:call', args)
