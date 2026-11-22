@@ -20,6 +20,7 @@ import {
 import { callLocalRuntimeMethod } from './runtime-call'
 import { registerRuntimeWorktreeRoots } from './worktree-roots'
 import { subscribeLocalWatcher, unsubscribeLocalWatcher } from './fs-watch'
+import { localWorkRoots } from './files'
 
 /** 逐个 handler 包一层错误投影：非 Error 的拒绝统一转成带通道名的 Error。 */
 function handleSafe(
@@ -87,6 +88,12 @@ export function registerLocalIpcHandlers(): void {
   handleSafe('runtime:call', async (_event, p) => {
     const args = p as { method: string; params?: unknown }
     return callLocalRuntimeMethod(args.method, args.params)
+  })
+
+  // 渲染端装配 demo 文件 IO 时读取工作根（I-009：单文件闭环的落盘目录）。
+  handleSafe('fs:getWorkDir', async () => {
+    const roots = localWorkRoots()
+    return { workDir: roots[0] ?? process.cwd() }
   })
 
   handleSafe('worktrees:register', async (_event, p) => {

@@ -18,6 +18,8 @@ import type { KeyboardLayoutChangeEvent } from '../../shared/keybindings/keyboar
 import type { DesktopRelayWrite } from '../../shared/workspace-session/desktop-relay-write'
 
 export type AppApi = {
+  /** 本地工作根（demo 文件 IO 的落盘目录；单机形态取第一个根）。 */
+  getWorkDir?: () => Promise<{ workDir: string }>
   getSystemLanguageDetection?: (
     browserPreferences?: readonly string[]
   ) => Promise<UiLanguageDetection | null>
