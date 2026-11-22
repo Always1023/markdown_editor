@@ -35,3 +35,12 @@
 - 依据：I-018 先做可达性全图（Explore，2,954 文件静态 import 图）——死集 549 文件删、test-only 岛 501 模块与 src/preload 类型面保留；原「review 呈现层是死代码」判断不成立（活链），待决关闭。
 - 信息需求（不答按默认）：打包目标 = Windows NSIS（本机 win32）；版本号 = package.json 0.1.0；图标 = 暂用 Electron 默认（自制记想法）；发布 = 不做（无远程仓库）。
 - 执行方式：I-018 清单脚本 [先写]（脚本断言活/死分类，删除后四道门：无残留引用 / typecheck / 全量回归 / build+冒烟）；I-019 / I-020 按各自 issue 机检清单走。
+
+## 2026-11-22 · B4 批次交付（清理 + 文档 + 打包；可安装成品产出）
+
+- 交付：I-018 死代码清理（实际死集 144 文件 + 24 空目录；全量 406/0 与删除前一致、typecheck / build / 冒烟全过，模型验收完成）→ I-019 README / NOTICE / LICENSE（四条 grep 门全过，模型验收完成）→ I-020 electron-builder NSIS 打包（dist/markdown_editor Setup 0.1.0.exe 149MB；静默装/卸闭环机检过；A5 安装观感待人验）。
+- 合并队列（链序）：B4 三条分支叠于 I-017-export（段尾人验门）——人验收 I-017 通过后，I-018 → I-019 → I-020 依次并入 main，随后删分支。
+- 关键留痕：清单脚本抓到 side-effect import 盲区（26 文件救回）；摘除边界待决关闭（review 呈现层证实为活链）；打包体积 ~149MB 根因是 64 生产依赖整包 + 大件（瘦身记想法）；图标用 Electron 默认（自制记想法）。
+- 产出：可安装成品 dist/markdown_editor Setup 0.1.0.exe（dist/ 已忽略，由 pnpm package 重建）。
+- [补空白] 无新增（打包配置、文档事实与删改决策均在各自 issue 过程记录）。
+- 下一批：无待布置——阶段 4 收尾后剩人验四条（I-006 A4/A5/A6、I-013 A6、I-017 A5、I-020 A5）与两个想法（test-only 岛清理、手工验收清单 + Releases）。
