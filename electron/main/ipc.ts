@@ -87,7 +87,20 @@ export function registerLocalIpcHandlers(): void {
 
   handleSafe('runtime:call', async (_event, p) => {
     const args = p as { method: string; params?: unknown }
-    return callLocalRuntimeMethod(args.method, args.params)
+    // 渲染端 callRuntimeRpc 期待 envelope（RuntimeRpcResponse）：成功包 result，失败包 error。
+    try {
+      const result = await callLocalRuntimeMethod(args.method, args.params)
+      return { ok: true, id: '', result }
+    } catch (error) {
+      return {
+        ok: false,
+        id: '',
+        error: {
+          code: 'local_error',
+          message: error instanceof Error ? error.message : String(error)
+        }
+      }
+    }
   })
 
   // 渲染端装配 demo 文件 IO 时读取工作根（I-009：单文件闭环的落盘目录）。
