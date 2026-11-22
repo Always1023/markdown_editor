@@ -229,7 +229,9 @@ export default function RichMarkdownEditor({
         clearTransientReviewState()
         cancelAutoFocusRef.current?.()
         cancelAutoFocusRef.current = null
-        window.api.ui.setMarkdownEditorFocused(false)
+        // 摘除说明：聚焦状态上报给宿主窗口 chrome（app-shell）；本地形态外壳在阶段 3
+        // 才接入，通道不存在时跳过（不崩溃），接线后自动恢复上报。
+        window.api?.ui?.setMarkdownEditorFocused?.(false)
       }
     },
     [clearTransientReviewState, bindRoot]
@@ -304,7 +306,13 @@ export default function RichMarkdownEditor({
   } = useLinkBubble(editor, rootRef, linkBubble, isEditingLink, setLinkBubble, setIsEditingLink)
 
   useEffect(() => {
-    return window.api.ui.onRichMarkdownContextCommand((payload) => {
+    // 摘除说明：宿主上下文菜单命令由窗口 chrome 转发（app-shell）；本地形态外壳在
+    // 阶段 3 才接入，通道不存在时跳过订阅（不崩溃），接线后自动恢复。
+    const subscribe = window.api?.ui?.onRichMarkdownContextCommand?.bind(window.api.ui)
+    if (!subscribe) {
+      return
+    }
+    return subscribe((payload) => {
       const ed = editorRef.current
       if (
         !ed ||
