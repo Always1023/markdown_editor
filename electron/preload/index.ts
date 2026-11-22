@@ -1,9 +1,35 @@
-import { contextBridge } from 'electron'
+// window.api 的真实桥（I-007）：fs 子集 / runtime.call / worktrees:register。
+// 类型面以 src/preload/api-types.ts 为唯一真源；此处只 expose 渲染端实际触达的
+// 通道，未接线的成员在渲染端触达时抛错（失败可见）。
+import { contextBridge, ipcRenderer } from 'electron'
 
-// I-005 会把这里补成与 Orca 同名的 window.api 全量桥；脚手架阶段先给最小占位。
+const invoke = (channel: string, payload?: unknown): Promise<unknown> =>
+  ipcRenderer.invoke(channel, payload)
+
 const api = {
-  __brand: 'markdown_editor-preload'
-} as const
+  fs: {
+    readFile: (args: unknown) => invoke('fs:readFile', args),
+    readFileChunk: (args: unknown) => invoke('fs:readFileChunk', args),
+    readDir: (args: unknown) => invoke('fs:readDir', args),
+    writeFile: (args: unknown) => invoke('fs:writeFile', args),
+    writeFileBytes: (args: unknown) => invoke('fs:writeFileBytes', args),
+    createFile: (args: unknown) => invoke('fs:createFile', args),
+    createDir: (args: unknown) => invoke('fs:createDir', args),
+    rename: (args: unknown) => invoke('fs:rename', args),
+    copy: (args: unknown) => invoke('fs:copy', args),
+    deletePath: (args: unknown) => invoke('fs:deletePath', args),
+    stat: (args: unknown) => invoke('fs:stat', args),
+    pathExists: (args: unknown) => invoke('fs:pathExists', args),
+    listMarkdownDocuments: (args: unknown) => invoke('fs:listMarkdownDocuments', args),
+    importExternalPaths: (args: unknown) => invoke('fs:importExternalPaths', args)
+  },
+  runtime: {
+    call: (args: { method: string; params?: unknown }) => invoke('runtime:call', args)
+  },
+  app: {
+    registerRuntimeWorktreeRoots: (args: unknown) => invoke('worktrees:register', args)
+  }
+}
 
 contextBridge.exposeInMainWorld('api', api)
 
