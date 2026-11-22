@@ -8,6 +8,7 @@ import { lazyWithRetry } from '@/app-shell/startup/lazy-with-retry'
 import { FileTree } from '@/components/file-tree/FileTree'
 import { useFileTree } from '@/components/file-tree/use-file-tree'
 import { MarkdownModeSwitcher } from '@/components/editor/source-mode/MarkdownModeSwitcher'
+import { SettingsPanel } from '@/components/settings/SettingsPanel'
 import { TabBar, type TabItem } from '@/components/tab-bar/TabBar'
 import { useAppStore } from '@/store/index'
 import type { MarkdownViewMode } from '@/store/slices/editor/types/open-file'
@@ -19,6 +20,7 @@ import {
   updateDemoWorkspaceRoot,
   type WorkspaceFileController
 } from './demo-file-io'
+import { hydrateAppSettings } from './settings-persistence'
 
 // I-013：source 模式经动态 import 挂 Monaco（AC-08 大依赖只走异步 chunk）。
 const LazyMonacoSourceEditor = lazyWithRetry(
@@ -101,6 +103,8 @@ export default function App(): React.JSX.Element {
           return
         }
         installDemoWorkspaceState(useAppStore, workDir)
+        // I-016：设置持久化恢复（在 install 之后跑，覆盖 demo 引导值）。
+        hydrateAppSettings(useAppStore)
         const controller = await startDemoFileIo({
           store: useAppStore,
           workDir,
@@ -297,6 +301,9 @@ export default function App(): React.JSX.Element {
     useAppStore.getState().setMarkdownTableOfContentsVisible(fileId, !visible)
   }, [])
 
+  // ---- 设置面板（I-016）：左栏底部入口 ----
+  const [settingsOpen, setSettingsOpen] = useState(false)
+
   // 保存队列写盘成功后清 dirty；用 active 文件 isDirty 下降沿刷新顶栏的「已保存」时间。
   const prevDirtyRef = useRef(false)
   useEffect(() => {
@@ -415,6 +422,16 @@ export default function App(): React.JSX.Element {
               activePath={activeController?.filePath ?? null}
               onOpen={openFromTree}
             />
+          </div>
+          <div className="border-t border-border px-2 py-2">
+            <button
+              type="button"
+              data-testid="settings-open"
+              className="w-full rounded border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
+              onClick={() => setSettingsOpen(true)}
+            >
+              设置
+            </button>
           </div>
         </aside>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -553,6 +570,7 @@ export default function App(): React.JSX.Element {
           </div>
         </div>
       )}
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   )
 }

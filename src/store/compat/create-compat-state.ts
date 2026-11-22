@@ -9,6 +9,7 @@ import {
   worktreeWorkspaceKey
 } from '@/shared/workspace/identity/workspace-scope'
 import { toVisibleTabType } from '@/shared/workspace-layout/tab-groups/tab-types'
+import { persistAppSettings } from '@/app/settings-persistence'
 
 // 纯数据字段；带 set 的动作在下方 creator 里实现，避免字段对象脱离 creator 作用域。
 const compatFields = {
@@ -84,6 +85,7 @@ const compatFields = {
   | 'setTabBarOrder'
   | 'setActiveView'
   | 'updateSettings'
+  | 'setEditorFontZoomLevel'
   | 'recordFeatureInteraction'
   | 'openModal'
   | 'closeModal'
@@ -186,9 +188,14 @@ export const createCompatState: StateCreator<AppState, [], [], CompatState> = (s
   closeModal: () => {
     set({ activeModal: 'none', modalData: {} })
   },
-  // 设置持久化在阶段 3 接入；先本地合并，界面开关即时生效。
+  // 设置持久化（I-016）：合并后落 localStorage；恢复在 App 启动时经 hydrateAppSettings。
   updateSettings: async (updates) => {
     set((state) => ({ settings: { ...state.settings, ...updates } as NonNullable<AppState['settings']> }))
+    persistAppSettings(get().settings)
+  },
+  // Orca ui-slice-persistence-actions.ts 逐字本地子集：缩放会话内即时生效（不持久化）。
+  setEditorFontZoomLevel: (level) => {
+    set({ editorFontZoomLevel: level })
   },
   recordFeatureInteraction: async (_id: FeatureInteractionId) => {
     // 功能引导埋点属于 Orca 运营面，本地形态不采集。
