@@ -44,3 +44,11 @@
 - 产出：可安装成品 dist/markdown_editor Setup 0.1.0.exe（dist/ 已忽略，由 pnpm package 重建）。
 - [补空白] 无新增（打包配置、文档事实与删改决策均在各自 issue 过程记录）。
 - 下一批：无待布置——阶段 4 收尾后剩人验四条（I-006 A4/A5/A6、I-013 A6、I-017 A5、I-020 A5）与两个想法（test-only 岛清理、手工验收清单 + Releases）。
+
+## 2026-11-22 · 验收证据包产出（人验四条前的自动化压缩）
+
+- 产出成品级证据：真实 buildStandaloneHtml 导出样张、真实 printToPDF 管线 PDF（94KB）+ 渲染图、CDP 连打包版 exe 实拍三模式截图（rich / source / preview）。探针脚本随 I-020 分支提交（scripts/export-evidence-* / screenshot-modes.cjs），可重生成；样张登记进 I-017 / I-020 自验。
+- pdf:visual-judge 代理供应商不可用，图像由执行会话逐一自查（结论：PDF 与三模式排版均正确）；人验判定仍归人。
+- 失误与恢复留痕：本轮误将 I-020-package 合入 I-017-export（方向反，会破坏链序合并）——经 reflog 定位、update-ref 回退到失误前 a5d8d6d、重放 I-017.md 补记；已验证 I-020-package 不是 I-017-export 的祖先（链序恢复）。
+- 分支祖先审计：I-006 / I-013 内容已随 B2/B3 链在 main（人验通过后合并为登记 + 删支）；I-017 → I-018 → I-019 → I-020 为真实合并链，I-020 已含 main（--no-ff 干净合并），零冲突预期。
+- 待人验四条不变：I-006（A4/A5/A6）· I-013（A6）· I-017（A5）· I-020（A5）。
