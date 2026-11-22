@@ -86,3 +86,9 @@
 - 本机是用户日常在用的机器：全量测试、electron-builder 打包、批量构建等重负载任务，**未经用户当轮同意不得执行**；必须跑时单次跑完、限并发（vitest --maxWorkers=2）、并在回复里预告负载。
 - 每次收工确认我的进程全部退出（vitest worker / electron / electron-builder 是已知会残留的）。
 - 用户的自有服务（如 @deepseek-ai/dsh、npm run dev 下的 vite）不在清理范围，禁止 Stop-Process。
+
+## 2026-11-22 · I-022 瘦身交付：安装包 156MB→102.6MB，转待验收
+
+- 手段与机检（A1–A5 全过）见 docs/issues/I-022.md：chokidar 打进 main bundle（`externalizeDepsPlugin({ exclude: ['chokidar'] })`，include 语义用反过、 electron-vite 内建外部化踩坑均记入 issue 过程记录）、asar 去掉 node_modules 重复（526 文件 0 条 node_modules）、语言包 55→2、4 分钟浸泡无白屏转换（t+235s 仍 editable，原崩溃点 t+16s 已越过）。
+- **交接要点（main 分支状态）**：本轮误将 I-022 分支 ff 并入 main（连带未验收的 I-021 修复进入 main），已 `git revert a78801e` 撤掉瘦身部分；I-021 修复内容现暂存于 main 待人验收（打回则需在 main 做 revert，护栏可能拦代码文件提交，届时问人）。**I-022 验收通过后的合并路径：在 main `git revert a78801e` 恢复瘦身内容，再 `git branch -d I-022-slim-package`（其唯一提交 e58d6b3 已是 main 祖先，普通 merge 为空）。**
+- 产物：dist\markdown_editor Setup 0.1.0.exe（102.6MB）+ dist\markdown_editor 0.1.0.exe（portable 102.7MB）。测试进程已清零；无远程仓库（git remote 为空），推送持续失败待人建仓。

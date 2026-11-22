@@ -1,6 +1,6 @@
 # Issues
 
-当前批次：B5 = I-021（白屏根因修复，待验收）；B6 = I-022（瘦身：asar 去重复打包 + 语言包裁剪，叠于 I-021 分支）
+当前批次：B5 = I-021（白屏根因修复，待验收）；B6 = I-022（瘦身，待验收——与 I-021 共用同一次真机双击检查）
 
 ## 待决问题
 - ~~摘除边界重审（关联 I-003 / I-004）~~ 已关闭（2026-11-22，I-018 可达性全图）：review 呈现层（rich-markdown/review/ 19 文件）与 diff-comment store 切片均被证实是活编辑器链的一部分（原「3 文件死代码」判断不成立）；摘除边界由 I-013 落成的 no-op 适配器承载，无需清理。
@@ -63,7 +63,7 @@
 - I-019 · feature · 完成 · README / NOTICE / LICENSE（MIT，署名 stablyai/orca）· 模型验收（2026-11-22 四条 grep 门全过）· B4 —— 已按链序 --no-ff 并入 main（914ccdf），分支已删
 - I-020 · feature · 进行中 · electron-builder 打包（NSIS 安装包 149MB + 静默装/卸闭环）· 人验收（残差 1 条）· B4 段尾 —— 已并入 main（7c9d7c9）；2026-11-22 人验打回：首启白屏，修复转 I-021
 - I-021 · bug · 待验收 · 打包版首启白屏修复 + 单文件 portable 免安装产物 · 人验收（残差 1 条：真机首启 A6；A1–A5 机检全过：普通启动实拍 / 崩溃自恢复 / main.log / 软渲染 p50 6.65ms / 回归 406-0）· B5
-- I-022 · 重构 · 进行中 · 打包瘦身：主进程仅 chokidar 外部化（其余 63 依赖 vite 已打包进渲染 bundle，asar 去重复）+ 语言包只留中英 + 删 3 个未引用依赖；目标安装包 ~90MB · 模型验收（行为不变）· B6 —— 审计数据见 issue
+- I-022 · 重构 · 待验收 · 打包瘦身：chokidar 打进 main bundle + asar 去掉 node_modules 重复 + 语言包只留中英 + 删 1 个未引用依赖 · 人验收（残差 1 条：与 I-021 A6 同一次真机双击覆盖）· B6 —— 机检全过：安装包 102.6MB（原 156MB）/ asar 无 node_modules / locales 仅 2 / 4 分钟浸泡无白屏，见 issue
 
 ### 想法（阶段 4 余量）
 - 想法（待拆）：test-only 岛清理（501 模块：monaco DiffViewer 链 + diff-comments 组件 11 文件 + floating-terminal / viewer-viewport / csv / loading 等）——锚定 3 个活代码 save-queue 测试，删除需重写其 fixture；不做则测试面继续背死代码
