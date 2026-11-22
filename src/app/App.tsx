@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import RichMarkdownEditor from '@/components/editor/rich-markdown/instance/RichMarkdownEditor'
+import { attachEditorAutosaveController } from '@/components/editor/autosave/editor-autosave-controller'
 import { setEditorDiskBaseline } from '@/components/editor/save/queue/editor-save-disk-precondition'
 import { getDiskBaselineSignature } from '@/shared/file-write/disk-baseline-signature'
 import { FileTree } from '@/components/file-tree/FileTree'
 import { useFileTree } from '@/components/file-tree/use-file-tree'
+import { TabBar, type TabItem } from '@/components/tab-bar/TabBar'
 import { useAppStore } from '@/store/index'
 import {
   DEMO_WORKTREE_ID,
@@ -94,6 +96,8 @@ export default function App(): React.JSX.Element {
           store: useAppStore,
           workDir,
           demoContent: DEMO_CONTENT,
+          // autosave 由 App 外壳全局挂一份：关闭首个标签不拆自动保存。
+          attachAutosave: false,
           onExternalReload: (next) => {
             diskContentRef.current.set(controller.fileId, next)
             if (activeFileIdRef.current === controller.fileId) {
@@ -122,6 +126,14 @@ export default function App(): React.JSX.Element {
       controllersRef.current.clear()
     }
   }, [activate])
+
+  // 自动保存全局一份（I-012）：随外壳生命周期，不随任何单个标签关闭拆除。
+  useEffect(() => {
+    const detach = attachEditorAutosaveController(useAppStore)
+    return () => {
+      detach()
+    }
+  }, [])
 
   // 文件树「打开文件」：已开即切换，未开走 openWorkspaceFile 装配。
   const openFromTree = useCallback(
@@ -173,6 +185,81 @@ export default function App(): React.JSX.Element {
       }
     })
   }, [tree])
+
+  // ---- 多标签（I-012）：openFiles → TabBar 投影；dirty 关闭走确认对话框 ----
+  const openFiles = useAppStore((s) => s.openFiles)
+  const tabs: TabItem[] = openFiles
+    .filter((file) => file.worktreeId === DEMO_WORKTREE_ID)
+    .map((file) => ({
+      fileId: file.id,
+      label: file.relativePath,
+      isDirty: file.isDirty,
+      isActive: file.id === activeFileId
+    }))
+
+  const [pendingCloseId, setPendingCloseId] = useState<string | null>(null)
+
+  const performClose = useCallback(
+    (fileId: string): void => {
+      const controller = controllersRef.current.get(fileId)
+      useAppStore.getState().closeFile(fileId)
+      controller?.dispose()
+      controllersRef.current.delete(fileId)
+      diskContentRef.current.delete(fileId)
+      if (activeFileIdRef.current === fileId) {
+        const remaining = useAppStore.getState().openFiles.filter(
+          (file) => file.worktreeId === DEMO_WORKTREE_ID
+        )
+        const next = remaining[remaining.length - 1]
+        if (next) {
+          activate(next.id)
+        } else {
+          activeFileIdRef.current = null
+          setActiveFileId(null)
+          setContent(null)
+        }
+      }
+    },
+    [activate]
+  )
+
+  const requestClose = useCallback(
+    (fileId: string): void => {
+      const file = useAppStore.getState().openFiles.find((candidate) => candidate.id === fileId)
+      if (file?.isDirty) {
+        // 有未保存编辑：先确认，不静默丢弃。
+        setPendingCloseId(fileId)
+        return
+      }
+      performClose(fileId)
+    },
+    [performClose]
+  )
+
+  const confirmCloseWithoutSaving = useCallback((): void => {
+    if (pendingCloseId) {
+      performClose(pendingCloseId)
+    }
+    setPendingCloseId(null)
+  }, [pendingCloseId, performClose])
+
+  const saveAndClose = useCallback((): void => {
+    const fileId = pendingCloseId
+    if (!fileId) {
+      return
+    }
+    setPendingCloseId(null)
+    const controller = controllersRef.current.get(fileId)
+    void controller
+      ?.saveNow()
+      .then(() => {
+        performClose(fileId)
+      })
+      .catch((error) => {
+        // 保存被拒（如 CAS 基线过期已标外部修改）：标签保留，失败可见。
+        console.error('[demo] 保存并关闭被拒', error)
+      })
+  }, [pendingCloseId, performClose])
 
   // 保存队列写盘成功后清 dirty；用 active 文件 isDirty 下降沿刷新顶栏的「已保存」时间。
   const prevDirtyRef = useRef(false)
@@ -294,39 +381,84 @@ export default function App(): React.JSX.Element {
             />
           </div>
         </aside>
-        <div className="min-h-0 min-w-0 flex-1">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <TabBar tabs={tabs} onSelect={activate} onClose={requestClose} />
           {content !== null && activeController && activeFileId && (
-            <RichMarkdownEditor
-              key={activeFileId}
-              fileId={activeFileId}
-              viewStateId={activeFileId}
-              content={content}
-              filePath={activeController.filePath}
-              worktreeId={DEMO_WORKTREE_ID}
-              runtimeEnvironmentId={null}
-              scrollCacheKey={activeFileId}
-              onContentChange={(next) => {
-                setContent(next)
-                useAppStore.getState().setEditorDraft(activeFileId, next)
-                useAppStore
-                  .getState()
-                  .markFileDirty(activeFileId, next !== diskContentRef.current.get(activeFileId))
-              }}
-              onDirtyStateHint={() => {}}
-              onSave={(next) => {
-                // Ctrl+S：进 save queue（CAS 基线过期会被拒并标记外部修改）。
-                void controllersRef.current
-                  .get(activeFileId)
-                  ?.saveNow()
-                  .catch((error) => {
-                    console.error('[demo] 保存被拒', error)
-                  })
-                return next
-              }}
-            />
+            <div className="min-h-0 flex-1">
+              <RichMarkdownEditor
+                key={activeFileId}
+                fileId={activeFileId}
+                viewStateId={activeFileId}
+                content={content}
+                filePath={activeController.filePath}
+                worktreeId={DEMO_WORKTREE_ID}
+                runtimeEnvironmentId={null}
+                scrollCacheKey={activeFileId}
+                onContentChange={(next) => {
+                  setContent(next)
+                  useAppStore.getState().setEditorDraft(activeFileId, next)
+                  useAppStore
+                    .getState()
+                    .markFileDirty(activeFileId, next !== diskContentRef.current.get(activeFileId))
+                }}
+                onDirtyStateHint={() => {}}
+                onSave={(next) => {
+                  // Ctrl+S：进 save queue（CAS 基线过期会被拒并标记外部修改）。
+                  void controllersRef.current
+                    .get(activeFileId)
+                    ?.saveNow()
+                    .catch((error) => {
+                      console.error('[demo] 保存被拒', error)
+                    })
+                  return next
+                }}
+              />
+            </div>
           )}
         </div>
       </div>
+      {pendingCloseId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          role="presentation"
+          data-testid="close-confirm-backdrop"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="关闭标签确认"
+            className="w-80 rounded-md border border-border bg-background p-4 shadow-lg"
+          >
+            <p className="text-sm font-medium">此文件有未保存的修改。</p>
+            <p className="mt-1 text-xs text-muted-foreground">关闭前要保存吗？</p>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                className="rounded border border-border bg-background px-2 py-1 text-sm hover:bg-muted"
+                onClick={() => setPendingCloseId(null)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                data-testid="close-confirm-save"
+                className="rounded border border-border bg-background px-2 py-1 text-sm hover:bg-muted"
+                onClick={saveAndClose}
+              >
+                保存并关闭
+              </button>
+              <button
+                type="button"
+                data-testid="close-confirm-discard"
+                className="rounded bg-primary px-2 py-1 text-sm text-primary-foreground hover:opacity-90"
+                onClick={confirmCloseWithoutSaving}
+              >
+                不保存关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

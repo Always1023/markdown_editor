@@ -175,6 +175,8 @@ export type DemoFileIoOptions = {
   demoContent: string
   /** clean 跟随磁盘重载后的新内容（编辑器用它刷新缓冲）。 */
   onExternalReload: (content: string) => void
+  /** 默认 true（I-009 单文件契约）。App 外壳传 false：autosave 由外壳全局挂一份，不随首个标签关闭而拆除。 */
+  attachAutosave?: boolean
 }
 
 export type DemoFileIoController = WorkspaceFileController
@@ -200,9 +202,12 @@ export async function startDemoFileIo(options: DemoFileIoOptions): Promise<DemoF
     onExternalReload: options.onExternalReload
   })
 
-  // 自动保存控制器全局只挂一份（多文件共用同一个 save queue）；随首个文件生命周期开停。
+  // 自动保存控制器全局只挂一份（多文件共用同一个 save queue）；默认随首个文件生命周期
+  // 开停（I-009 契约），App 外壳传 attachAutosave: false 自行挂载。
+  if (options.attachAutosave === false) {
+    return controller
+  }
   const detachAutosave = attachEditorAutosaveController(store)
-
   return {
     ...controller,
     dispose: () => {
