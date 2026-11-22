@@ -62,7 +62,7 @@
 - I-018 · 重构 · 完成 · 死代码清理（实际死集 144 文件 + 24 空目录；test-only 岛与 preload 类型面保留）· 模型验收（2026-11-22 四道门全过，406/0 一致）· B4 —— 已按链序 --no-ff 并入 main（79cd15c），分支已删
 - I-019 · feature · 完成 · README / NOTICE / LICENSE（MIT，署名 stablyai/orca）· 模型验收（2026-11-22 四条 grep 门全过）· B4 —— 已按链序 --no-ff 并入 main（914ccdf），分支已删
 - I-020 · feature · 进行中 · electron-builder 打包（NSIS 安装包 149MB + 静默装/卸闭环）· 人验收（残差 1 条）· B4 段尾 —— 已并入 main（7c9d7c9）；2026-11-22 人验打回：首启白屏，修复转 I-021
-- I-021 · bug · 进行中 · 打包版首启白屏（人报告：安装版首启只见白窗无内容）+ 单文件 portable 免安装产物 · 模型验收 · B5 —— 复现证据与修复记录见 docs/issues/I-021.md
+- I-021 · bug · 待验收 · 打包版首启白屏修复 + 单文件 portable 免安装产物 · 人验收（残差 1 条：真机首启 A6；A1–A5 机检全过：普通启动实拍 / 崩溃自恢复 / main.log / 软渲染 p50 6.65ms / 回归 406-0）· B5
 
 ### 想法（阶段 4 余量）
 - 想法（待拆）：test-only 岛清理（501 模块：monaco DiffViewer 链 + diff-comments 组件 11 文件 + floating-terminal / viewer-viewport / csv / loading 等）——锚定 3 个活代码 save-queue 测试，删除需重写其 fixture；不做则测试面继续背死代码
