@@ -19,12 +19,16 @@ import {
 } from './files'
 import { callLocalRuntimeMethod } from './runtime-call'
 import { registerRuntimeWorktreeRoots } from './worktree-roots'
+import { subscribeLocalWatcher, unsubscribeLocalWatcher } from './fs-watch'
 
 /** 逐个 handler 包一层错误投影：非 Error 的拒绝统一转成带通道名的 Error。 */
-function handleSafe(channel: string, fn: (payload: unknown) => Promise<unknown>): void {
-  ipcMain.handle(channel, async (_event, payload: unknown) => {
+function handleSafe(
+  channel: string,
+  fn: (event: Electron.IpcMainInvokeEvent, payload: unknown) => Promise<unknown>
+): void {
+  ipcMain.handle(channel, async (event, payload: unknown) => {
     try {
-      return await fn(payload)
+      return await fn(event, payload)
     } catch (error) {
       if (error instanceof Error) {
         throw error
@@ -35,15 +39,15 @@ function handleSafe(channel: string, fn: (payload: unknown) => Promise<unknown>)
 }
 
 export function registerLocalIpcHandlers(): void {
-  handleSafe('fs:readFile', (p) => readTextFile(p as { filePath: string }))
-  handleSafe('fs:stat', (p) => statFile(p as { filePath: string }))
-  handleSafe('fs:pathExists', (p) => pathExists(p as { filePath: string }))
-  handleSafe('fs:readDir', (p) => readDirEntries(p as { dirPath: string }))
-  handleSafe('fs:readFileChunk', (p) =>
+  handleSafe('fs:readFile', (_event, p) => readTextFile(p as { filePath: string }))
+  handleSafe('fs:stat', (_event, p) => statFile(p as { filePath: string }))
+  handleSafe('fs:pathExists', (_event, p) => pathExists(p as { filePath: string }))
+  handleSafe('fs:readDir', (_event, p) => readDirEntries(p as { dirPath: string }))
+  handleSafe('fs:readFileChunk', (_event, p) =>
     readFileChunk(p as { filePath: string; offset: number; length: number })
   )
-  handleSafe('fs:writeFile', (p) => writeTextFile(p as { filePath: string; content: string }))
-  handleSafe('fs:writeFileBytes', (p) =>
+  handleSafe('fs:writeFile', (_event, p) => writeTextFile(p as { filePath: string; content: string }))
+  handleSafe('fs:writeFileBytes', (_event, p) =>
     writeFileBytes(
       p as {
         filePath: string
@@ -52,29 +56,40 @@ export function registerLocalIpcHandlers(): void {
       }
     )
   )
-  handleSafe('fs:createFile', (p) => createFile(p as { filePath: string }))
-  handleSafe('fs:createDir', (p) => createDirectory(p as { dirPath: string }))
-  handleSafe('fs:rename', (p) => renamePath(p as { oldPath: string; newPath: string }))
-  handleSafe('fs:copy', (p) => copyPath(p as { sourcePath: string; destinationPath: string }))
-  handleSafe('fs:deletePath', (p) => deletePath(p as { targetPath: string; permanent?: boolean }))
-  handleSafe('fs:listMarkdownDocuments', (p) =>
+  handleSafe('fs:createFile', (_event, p) => createFile(p as { filePath: string }))
+  handleSafe('fs:createDir', (_event, p) => createDirectory(p as { dirPath: string }))
+  handleSafe('fs:rename', (_event, p) => renamePath(p as { oldPath: string; newPath: string }))
+  handleSafe('fs:copy', (_event, p) => copyPath(p as { sourcePath: string; destinationPath: string }))
+  handleSafe('fs:deletePath', (_event, p) => deletePath(p as { targetPath: string; permanent?: boolean }))
+  handleSafe('fs:listMarkdownDocuments', (_event, p) =>
     listMarkdownDocuments(p as { rootPath: string })
   )
-  handleSafe('fs:importExternalPaths', (p) =>
+  handleSafe('fs:importExternalPaths', (_event, p) =>
     importExternalPaths(p as { sourcePaths: string[]; destDir: string })
   )
+  // 文件 watch（I-008）：按窗口订阅；payload 形状与 Orca fs:changed 一致。
+  handleSafe('fs:watchWorktree', async (event, p) => {
+    const args = p as { worktreePath: string }
+    await subscribeLocalWatcher(args.worktreePath, event.sender)
+    return { ok: true }
+  })
+  handleSafe('fs:unwatchWorktree', async (event, p) => {
+    const args = p as { worktreePath: string }
+    unsubscribeLocalWatcher(args.worktreePath, event.sender.id)
+    return { ok: true }
+  })
   // 渲染端选择「在外部查看」类动作：交给系统 shell（本地形态无远端主机）。
-  handleSafe('fs:showInFolder', async (p) => {
+  handleSafe('fs:showInFolder', async (_event, p) => {
     shell.showItemInFolder(String((p as { path: string })['path']))
     return { ok: true }
   })
 
-  handleSafe('runtime:call', async (p) => {
+  handleSafe('runtime:call', async (_event, p) => {
     const args = p as { method: string; params?: unknown }
     return callLocalRuntimeMethod(args.method, args.params)
   })
 
-  handleSafe('worktrees:register', async (p) => {
+  handleSafe('worktrees:register', async (_event, p) => {
     const args = p as { worktreeId: string; rootPath: string }
     registerRuntimeWorktreeRoots({ worktreeId: args.worktreeId, rootPath: args.rootPath })
     return { ok: true }
