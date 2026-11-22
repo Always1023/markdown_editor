@@ -37,7 +37,9 @@ const api = {
   app: {
     registerRuntimeWorktreeRoots: (args: unknown) => invoke('worktrees:register', args),
     getWorkDir: () => invoke('fs:getWorkDir'),
-    chooseWorkDir: () => invoke('fs:chooseWorkDir')
+    chooseWorkDir: () => invoke('fs:chooseWorkDir'),
+    chooseExportPath: (args: unknown) => invoke('fs:chooseExportPath', args),
+    exportDocument: (args: unknown) => invoke('fs:exportDocument', args)
   }
 }
 

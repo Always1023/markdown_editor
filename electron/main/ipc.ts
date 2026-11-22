@@ -19,6 +19,7 @@ import {
   writeTextFile
 } from './files'
 import { callLocalRuntimeMethod } from './runtime-call'
+import { exportDocument } from './export'
 import { registerRuntimeWorktreeRoots } from './worktree-roots'
 import { subscribeLocalWatcher, unsubscribeLocalWatcher } from './fs-watch'
 import { localWorkRoots } from './files'
@@ -127,6 +128,32 @@ export function registerLocalIpcHandlers(): void {
     const workDir = addRuntimeWorkRoot(result.filePaths[0])
     return { workDir, canceled: false }
   })
+
+  // 「导出」（I-017）：路径来自系统保存对话框（用户选择即授权），exportDocument
+  // 不做工作根越权检查——区别于 fs:writeFile 的渲染端任意写保护。
+  handleSafe('fs:chooseExportPath', async (event, p) => {
+    const args = p as {
+      title: string
+      defaultFileName: string
+      filters: Array<{ name: string; extensions: string[] }>
+    }
+    const owner = BrowserWindow.fromWebContents(event.sender)
+    const options: Electron.SaveDialogOptions = {
+      title: args.title,
+      defaultPath: args.defaultFileName,
+      filters: args.filters
+    }
+    const result = owner
+      ? await dialog.showSaveDialog(owner, options)
+      : await dialog.showSaveDialog(options)
+    if (result.canceled || !result.filePath) {
+      return { filePath: null, canceled: true }
+    }
+    return { filePath: result.filePath, canceled: false }
+  })
+  handleSafe('fs:exportDocument', (_event, p) =>
+    exportDocument(p as { kind: 'html' | 'pdf'; filePath: string; html: string })
+  )
 
   handleSafe('worktrees:register', async (_event, p) => {
     const args = p as { worktreeId: string; rootPath: string }
