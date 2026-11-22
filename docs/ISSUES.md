@@ -29,10 +29,10 @@
 
 ### [build]
 - I-007 · feature · 完成 · FileService 主进程 IPC 接线（fs 子集 + runtime files.* 路由 + writeIfUnchanged CAS）· 模型验收 · B2 —— 2026-11-22 模型验收合并（A1–A7 探针 7/7；全量 365 过）
-- I-008 · feature · 进行中 · 文件 watch 与变更事件映射（chokidar → onFsChanged）· 模型验收 · B2
+- I-008 · feature · 完成 · 文件 watch 与变更事件映射（chokidar → onFsChanged）· 模型验收 · B2 —— 2026-11-22 模型验收合并（探针 6/6；全量 371 过）
 
 ### [editor]
-- I-009 · feature · 待办 · demo 接真实文件读写与保存队列（writeIfUnchanged + 外部修改横幅）· 模型验收 · B2
+- I-009 · feature · 进行中 · demo 接真实文件读写与保存队列（writeIfUnchanged + 外部修改横幅）· 模型验收 · B2
 - I-010 · feature · 待办 · 图片粘贴落盘管线（saveImageAsTempFile + importExternalPaths 两端接线）· 模型验收 · B2
 
 ### 想法（阶段 2 余量）
