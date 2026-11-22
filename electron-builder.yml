@@ -1,0 +1,19 @@
+# I-020 electron-builder 配置：Windows NSIS 安装包。
+# 产物结构：electron-vite 的 out/（main / preload / renderer 三段）+ package.json
+# + 生产依赖（electron-builder 自动打包 dependencies）；app 源码不进安装包。
+appId: dev.markdowneditor.app
+productName: markdown_editor
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: true
+  perMachine: false
+  deleteAppDataOnUninstall: false
