@@ -92,3 +92,9 @@
 - 手段与机检（A1–A5 全过）见 docs/issues/I-022.md：chokidar 打进 main bundle（`externalizeDepsPlugin({ exclude: ['chokidar'] })`，include 语义用反过、 electron-vite 内建外部化踩坑均记入 issue 过程记录）、asar 去掉 node_modules 重复（526 文件 0 条 node_modules）、语言包 55→2、4 分钟浸泡无白屏转换（t+235s 仍 editable，原崩溃点 t+16s 已越过）。
 - **交接要点（main 分支状态）**：本轮误将 I-022 分支 ff 并入 main（连带未验收的 I-021 修复进入 main），已 `git revert a78801e` 撤掉瘦身部分；I-021 修复内容现暂存于 main 待人验收（打回则需在 main 做 revert，护栏可能拦代码文件提交，届时问人）。**I-022 验收通过后的合并路径：在 main `git revert a78801e` 恢复瘦身内容，再 `git branch -d I-022-slim-package`（其唯一提交 e58d6b3 已是 main 祖先，普通 merge 为空）。**
 - 产物：dist\markdown_editor Setup 0.1.0.exe（102.6MB）+ dist\markdown_editor 0.1.0.exe（portable 102.7MB）。测试进程已清零；无远程仓库（git remote 为空），推送持续失败待人建仓。
+
+## 2026-11-22 · B5 + B6 验收通过，合并收尾；远程仓库已配，推送待修凭据
+
+- 人对 I-021（真机首启不白屏）与 I-022（瘦身后体验无异）回复「通过」。main 恢复瘦身：revert a78801e（05c166b）+ `--no-ff` 合并 742f17f（666511a）；I-021 修复内容此前已随 ff 在 main，验收时确认保留；两条分支已删。
+- 远程 origin = github.com/Always1023/markdown_editor.git 已加；**推送 403：本机 Git Credential Manager 认到的账号是 AiTop233，对 Always1023 的仓库无写权限**。修复：控制面板 → 凭据管理器 → Windows 凭据，删除 `git:https://github.com` 条目后重推（会弹浏览器用 Always1023 登录）；或 `git credential-manager github logout` 后重试。提交已全部落本地，凭据修好即补推。
+- 公开前自查已过：署名 billowview@gmail.com 经人确认公开；历史无 .env / 密钥文件，代码无密钥特征。
