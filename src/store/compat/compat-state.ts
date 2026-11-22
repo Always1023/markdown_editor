@@ -159,6 +159,7 @@ export type CompatState = {
   updateSettings: (updates: Partial<GlobalSettings>) => Promise<void>
   // Orca store/slices/ui/ui-slice-contract-preferences.ts（编辑器字号缩放；本地默认 0）。
   editorFontZoomLevel: number
+  setEditorFontZoomLevel: (level: number) => void
   // Orca store/slices/keybindings/keybindings.ts（快捷键覆盖；本地默认无覆盖）
   keybindings: Partial<Record<string, string[]>>
   // Orca store/slices/agent-status/contracts/agent-status-slice-contract.ts（实时 agent 状态；
