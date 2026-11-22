@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 // I-011 机检探针：文件树渲染 / 点击打开 / watch 刷新 / 换根（window.api 接真实主进程
-// 实现，dialog stub 控制选目录；临时目录 + 清理）。
+// 实现，dialog 由 stub 控制；临时目录 + 清理）。stub 见 helpers/demo-window-api。
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mkdtemp, rm, writeFile, mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -8,36 +8,35 @@ import { join } from 'node:path'
 import { render, screen, waitFor } from '@testing-library/react'
 import { useAppStore } from '../../src/store/index'
 import {
-  DEMO_WORKTREE_ID,
   installDemoWorkspaceState,
   openWorkspaceFile
 } from '../../src/app/demo-file-io'
 import { FileTree } from '../../src/components/file-tree/FileTree'
 import { useFileTree } from '../../src/components/file-tree/use-file-tree'
 import {
-  addRuntimeWorkRoot,
-  readTextFile,
-  statFile,
-  pathExists,
-  writeTextFile,
-  importExternalPaths,
-  listMarkdownDocuments,
-  localWorkRoots
-} from '../../electron/main/files'
-import { callLocalRuntimeMethod } from '../../electron/main/runtime-call'
+  emitFsChanged,
+  installDemoWindowApi,
+  resetFsChangedListeners
+} from './helpers/demo-window-api'
 
 let root: string
 
-// fs:changed 订阅回调收集（watch 事件由测试手动触发）。
-type FsChangedListener = (payload: unknown) => void
-let fsChangedListeners: FsChangedListener[] = []
+let chosenDirectory: string | null = null
 
 beforeEach(async () => {
   vi.clearAllMocks()
   root = await mkdtemp(join(tmpdir(), 'me-tree-'))
   process.env['MARKDOWN_EDITOR_ROOTS'] = root
-  fsChangedListeners = []
-  installWindowStub()
+  chosenDirectory = null
+  resetFsChangedListeners()
+  installDemoWindowApi({
+    chooseWorkDir: () => {
+      if (chosenDirectory) {
+        return { workDir: chosenDirectory, canceled: false }
+      }
+      return { workDir: null, canceled: true }
+    }
+  })
   installDemoWorkspaceState(useAppStore, root)
 })
 
@@ -45,74 +44,6 @@ afterAll(async () => {
   delete process.env['MARKDOWN_EDITOR_ROOTS']
   await rm(root, { recursive: true, force: true })
 })
-
-let chosenDirectory: string | null = null
-
-function installWindowStub(): void {
-  const win = (globalThis as unknown as { window: Record<string, unknown> }).window
-  win['api'] = {
-    runtime: {
-      call: async (args: { method: string; params?: unknown }) => {
-        try {
-          return {
-            ok: true,
-            id: '',
-            result: await callLocalRuntimeMethod(args.method, args.params)
-          }
-        } catch (error) {
-          return {
-            ok: false,
-            id: '',
-            error: {
-              code: 'local_error',
-              message: error instanceof Error ? error.message : String(error)
-            }
-          }
-        }
-      }
-    },
-    fs: {
-      readFile: readTextFile,
-      stat: statFile,
-      pathExists,
-      writeFile: writeTextFile,
-      importExternalPaths,
-      listMarkdownDocuments,
-      watchWorktree: async () => {
-        return undefined
-      },
-      unwatchWorktree: async () => {
-        return undefined
-      },
-      onFsChanged: (callback: FsChangedListener) => {
-        fsChangedListeners.push(callback)
-        return () => {
-          fsChangedListeners = fsChangedListeners.filter((listener) => listener !== callback)
-        }
-      }
-    },
-    app: {
-      getWorkDir: async () => ({ workDir: localWorkRoots()[0] }),
-      registerWorkRoot: async (args: { rootPath: string }) => {
-        addRuntimeWorkRoot(args.rootPath)
-        return { ok: true }
-      },
-      chooseWorkDir: async () => {
-        if (chosenDirectory) {
-          addRuntimeWorkRoot(chosenDirectory)
-          return { workDir: chosenDirectory, canceled: false }
-        }
-        return { workDir: null, canceled: true }
-      }
-    }
-  }
-}
-
-function emitFsChanged(events: Array<{ kind: string; absolutePath: string }>): void {
-  for (const listener of fsChangedListeners) {
-    listener({ worktreePath: root, events: events.map((event) => ({ ...event, isDirectory: false })) })
-  }
-}
 
 function TreeHarness({
   onOpenRef,
@@ -196,7 +127,7 @@ describe('I-011 A3 watch 刷新', () => {
     await waitFor(() => screen.getByText('welcome.md'), { timeout: 5000 })
 
     await writeFile(join(root, 'late.md'), '# 迟到的文档', 'utf-8')
-    emitFsChanged([{ kind: 'create', absolutePath: join(root, 'late.md') }])
+    emitFsChanged(root, [{ kind: 'create', absolutePath: join(root, 'late.md') }])
     await waitFor(() => screen.getByText('late.md'), { timeout: 5000 })
   })
 })
