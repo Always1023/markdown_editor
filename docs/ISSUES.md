@@ -41,7 +41,19 @@
 - 想法 · bug：长耗时测试（markdown-preview-table-chunks 单跑 ~6.2s）在 vitest 默认并发池下被资源竞争拖超时偶挂（I-008 期间两轮全量各挂一个不同文件，单跑均过；--maxWorkers=2 稳定全绿）——不做则 CI / 全量回归证据不稳定；处理方向：该测试降敏或调 pool 并发
 
 ## 阶段 3 · 产品外壳（M3）
-- 想法（待拆）：文件树（打开文件夹）、多标签、状态栏（保存态 / 模式 / 缩放）、三渲染模式（source = Monaco 动态加载、preview = markdown-preview 移植）、TOC 面板、双链 useMarkdownDocuments 适配本地 fs、设置面板、全局搜索替换、导出 HTML / PDF、i18n 收尾
+
+当前批次：B3 = I-011 → I-012 → I-013 → I-014 → I-015 → I-016 → I-017（串行链；段尾 I-013 / I-017 人验残差，段尾不等）
+
+- I-011 · feature · 进行中 · 文件树与文件夹工作区（打开文件夹 + 树形列表 + watch 刷新）· 模型验收 · B3a
+- I-012 · feature · 待办 · 多标签栏（tab bar / 切换 / 关闭 / dirty 标记）· 模型验收 · B3a
+- I-013 · feature · 待办 · 三渲染模式（rich / source=Monaco / preview=markdown-preview）· 人验收（残差 1 条：切换观感）· B3a 段尾
+- I-014 · feature · 待办 · TOC 面板（标题层级 + 点击跳转）· 模型验收 · B3b
+- I-015 · feature · 待办 · 编辑器搜索替换（Ctrl+F / 全部替换）· 模型验收 · B3b
+- I-016 · feature · 待办 · 设置面板（自动保存 / 缩放 / 拼写检查）· 模型验收 · B3b
+- I-017 · feature · 待办 · 导出 HTML / PDF · 人验收（残差 1 条：导出结果观感）· B3b 段尾
+
+### 想法（阶段 3 余量）
+- 想法（待拆）：状态栏增强（模式 / 缩放 / 保存态常显）、双链 useMarkdownDocuments 适配本地 fs、i18n 收尾
 
 ## 阶段 4 · 测试收尾与发布（M4）
 - 想法（待拆）：vitest 测试子集收尾与 dom-setup、手工验收清单执行（含 round-trip 10 次保真、外部编辑冲突）、NOTICE.md + LICENSE（MIT，署名 stablyai/orca）+ README、electron-builder 打包与 Releases 发布
