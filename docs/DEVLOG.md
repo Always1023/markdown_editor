@@ -98,3 +98,7 @@
 - 人对 I-021（真机首启不白屏）与 I-022（瘦身后体验无异）回复「通过」。main 恢复瘦身：revert a78801e（05c166b）+ `--no-ff` 合并 742f17f（666511a）；I-021 修复内容此前已随 ff 在 main，验收时确认保留；两条分支已删。
 - 远程 origin = github.com/Always1023/markdown_editor.git 已加；**推送 403：本机 Git Credential Manager 认到的账号是 AiTop233，对 Always1023 的仓库无写权限**。修复：控制面板 → 凭据管理器 → Windows 凭据，删除 `git:https://github.com` 条目后重推（会弹浏览器用 Always1023 登录）；或 `git credential-manager github logout` 后重试。提交已全部落本地，凭据修好即补推。
 - 公开前自查已过：署名 billowview@gmail.com 经人确认公开；历史无 .env / 密钥文件，代码无密钥特征。
+
+## 2026-11-22 · 推送通道落定：SSH github-acc3（Always1023）
+
+- 本机三个 GitHub 账号盘点：GCM（HTTPS）= AiTop233；SSH 默认钥匙 id_rsa（端口 22 被代理拦截，账号未验）；`id_ed25519_github_acc3` = **Always1023**（走 ssh.github.com:443）。origin 已切为 `git@github-acc3:Always1023/markdown_editor.git`，main 全部历史已推送并核对一致（efd19a7）。今后推送用此通道；勿改回 HTTPS（会撞 AiTop233 凭据）。
