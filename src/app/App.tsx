@@ -1,12 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, Suspense } from 'react'
 import RichMarkdownEditor from '@/components/editor/rich-markdown/instance/RichMarkdownEditor'
+import MarkdownPreview from '@/components/editor/markdown-preview/surface/MarkdownPreview'
 import { attachEditorAutosaveController } from '@/components/editor/autosave/editor-autosave-controller'
 import { setEditorDiskBaseline } from '@/components/editor/save/queue/editor-save-disk-precondition'
 import { getDiskBaselineSignature } from '@/shared/file-write/disk-baseline-signature'
+import { lazyWithRetry } from '@/app-shell/startup/lazy-with-retry'
 import { FileTree } from '@/components/file-tree/FileTree'
 import { useFileTree } from '@/components/file-tree/use-file-tree'
+import { MarkdownModeSwitcher } from '@/components/editor/source-mode/MarkdownModeSwitcher'
 import { TabBar, type TabItem } from '@/components/tab-bar/TabBar'
 import { useAppStore } from '@/store/index'
+import type { MarkdownViewMode } from '@/store/slices/editor/types/open-file'
 import {
   DEMO_WORKTREE_ID,
   installDemoWorkspaceState,
@@ -15,6 +19,11 @@ import {
   updateDemoWorkspaceRoot,
   type WorkspaceFileController
 } from './demo-file-io'
+
+// I-013：source 模式经动态 import 挂 Monaco（AC-08 大依赖只走异步 chunk）。
+const LazyMonacoSourceEditor = lazyWithRetry(
+  () => import('@/components/editor/source-mode/MonacoSourceEditor')
+)
 
 // I-011 demo 外壳：左栏文件树（工作根 = MARKDOWN_EDITOR_ROOTS[0]，可「打开文件夹」
 // 换根）+ 编辑区落在真实磁盘文件上。打开 / 保存 / 外部修改语义沿用 I-009 的装配链
@@ -261,6 +270,20 @@ export default function App(): React.JSX.Element {
       })
   }, [pendingCloseId, performClose])
 
+  // ---- 三渲染模式（I-013）：store.markdownViewMode 按 fileId，缺省 rich ----
+  const viewMode = useAppStore((s) =>
+    activeFileId ? (s.markdownViewMode[activeFileId] ?? 'rich') : 'rich'
+  )
+  const selectMode = useCallback(
+    (mode: MarkdownViewMode): void => {
+      if (!activeFileIdRef.current) {
+        return
+      }
+      useAppStore.getState().setMarkdownViewMode(activeFileIdRef.current, mode)
+    },
+    []
+  )
+
   // 保存队列写盘成功后清 dirty；用 active 文件 isDirty 下降沿刷新顶栏的「已保存」时间。
   const prevDirtyRef = useRef(false)
   useEffect(() => {
@@ -382,8 +405,14 @@ export default function App(): React.JSX.Element {
           </div>
         </aside>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="flex items-center justify-between border-b border-border px-2 py-1">
+            <span className="min-w-0 truncate text-xs text-muted-foreground" title={activeController?.filePath ?? ''}>
+              {activeFile?.relativePath ?? ''}
+            </span>
+            <MarkdownModeSwitcher viewMode={viewMode} onSelectMode={selectMode} />
+          </div>
           <TabBar tabs={tabs} onSelect={activate} onClose={requestClose} />
-          {content !== null && activeController && activeFileId && (
+          {content !== null && activeController && activeFileId && viewMode === 'rich' && (
             <div className="min-h-0 flex-1">
               <RichMarkdownEditor
                 key={activeFileId}
@@ -412,6 +441,41 @@ export default function App(): React.JSX.Element {
                     })
                   return next
                 }}
+              />
+            </div>
+          )}
+          {content !== null && activeController && activeFileId && viewMode === 'source' && (
+            <div className="min-h-0 flex-1" data-testid="source-editor-host">
+              <Suspense
+                fallback={<p className="px-3 py-2 text-xs text-muted-foreground">源码编辑器加载中…</p>}
+              >
+                <LazyMonacoSourceEditor
+                  value={content}
+                  onChange={(next) => {
+                    setContent(next)
+                    useAppStore.getState().setEditorDraft(activeFileId, next)
+                    useAppStore
+                      .getState()
+                      .markFileDirty(activeFileId, next !== diskContentRef.current.get(activeFileId))
+                  }}
+                  onSave={() => {
+                    void controllersRef.current
+                      .get(activeFileId)
+                      ?.saveNow()
+                      .catch((error) => {
+                        console.error('[demo] 保存被拒', error)
+                      })
+                  }}
+                />
+              </Suspense>
+            </div>
+          )}
+          {content !== null && activeController && activeFileId && viewMode === 'preview' && (
+            <div className="min-h-0 flex-1 overflow-auto" data-testid="preview-host">
+              <MarkdownPreview
+                content={content}
+                filePath={activeController.filePath}
+                scrollCacheKey={activeFileId}
               />
             </div>
           )}
