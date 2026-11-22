@@ -32,8 +32,8 @@
 - I-008 · feature · 完成 · 文件 watch 与变更事件映射（chokidar → onFsChanged）· 模型验收 · B2 —— 2026-11-22 模型验收合并（探针 6/6；全量 371 过）
 
 ### [editor]
-- I-009 · feature · 进行中 · demo 接真实文件读写与保存队列（writeIfUnchanged + 外部修改横幅）· 模型验收 · B2
-- I-010 · feature · 待办 · 图片粘贴落盘管线（saveImageAsTempFile + importExternalPaths 两端接线）· 模型验收 · B2
+- I-009 · feature · 完成 · demo 接真实文件读写与保存队列（writeIfUnchanged + 外部修改横幅）· 模型验收 · B2 —— 2026-11-22 模型验收合并（探针 5/5 + 渲染适配；全量 376 过；dev 冒烟落盘成功）
+- I-010 · feature · 进行中 · 图片粘贴落盘管线（saveImageAsTempFile + importExternalPaths 两端接线）· 模型验收 · B2
 
 ### 想法（阶段 2 余量）
 - 想法：独立自动保存控制器的参数调优（防抖 / 静默窗口）——内核控制器已随 I-003 迁移，I-009 验证生效后如参数不适再单开
