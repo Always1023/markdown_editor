@@ -52,3 +52,10 @@
 - 失误与恢复留痕：本轮误将 I-020-package 合入 I-017-export（方向反，会破坏链序合并）——经 reflog 定位、update-ref 回退到失误前 a5d8d6d、重放 I-017.md 补记；已验证 I-020-package 不是 I-017-export 的祖先（链序恢复）。
 - 分支祖先审计：I-006 / I-013 内容已随 B2/B3 链在 main（人验通过后合并为登记 + 删支）；I-017 → I-018 → I-019 → I-020 为真实合并链，I-020 已含 main（--no-ff 干净合并），零冲突预期。
 - 待人验四条不变：I-006（A4/A5/A6）· I-013（A6）· I-017（A5）· I-020（A5）。
+
+## 2026-11-22 · 验收快门（冷回归入口：四条人验残差一览）
+
+- 验收顺序与动作：① I-020 运行 `dist\markdown_editor Setup 0.1.0.exe`（看安装向导 / Electron 默认图标 / 首启 / 卸载）；② I-017 看 `C:\Users\Always\AppData\Local\Temp\me-acceptance\export-probe-p1.png`（真实 printToPDF 样张）或切 I-017-export 亲导；③ I-013 看 `C:\Users\Always\AppData\Local\Temp\me-acceptance\mode-rich|source|preview.png`（打包版三模式实拍）或切 I-013-view-modes；④ I-006 在 I-006-smooth-demo（已同步 main）`pnpm dev` 打字。
+- 机器证据已覆盖的实质：IME 组合管线六项断言（组合显示 / 更新无重复 / 提交 / 落盘）全过；打字延迟 avg 13.6ms / p50 10ms / max 38ms；导出 HTML/PDF 走真实管线出样张；三模式截图排版正确。人只判：真机手感、观感可接受度、安装向导 / 图标。
+- 回复「全部验收通过」或逐条「I-xxx 验收通过 / 不通过：原因」→ 模型执行：I-006 / I-013 登记删支（内容已在 main）→ I-017 → I-018 → I-019 → I-020 依次 --no-ff 并入 main → 删全部分支 → 看板与 DEVLOG 终稿。
+- 机器证据探针集中在 scripts/（export-evidence-* / screenshot-modes / ime-probe / latency-probe），全部可重生成；样张为临时目录文件，过期重跑即可。
