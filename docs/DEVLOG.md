@@ -19,3 +19,12 @@
 - 待验收：I-006（残差 3 条：A4 中文输入法 / A5 手感 / A6 观感；真机粘贴体验并入 A5）。
 - [补空白] 无新增（安装 demo 工作区 / editor 装配层做法已在 I-009 过程记录）。
 - 下一批：阶段 3 外壳（文件树 / 多标签 / 三模式 / TOC / 设置 / 搜索 / 导出）待布置；模块顺序建议先 editor 侧（TOC / 搜索 / 预览）再 shell 侧（文件树 / 标签）。
+
+## 2026-11-22 · B3 批次完成（布置盘点补记 + 交付）
+
+- 布置（本条补记）：阶段 3 外壳拆为 B3 = I-011 文件树 → I-012 多标签 → I-013 三渲染模式 → I-014 TOC → I-015 搜索 → I-016 设置 → I-017 导出，串行链、段尾 I-013 / I-017 人验残差、段尾不等。
+- 交付：I-011 / I-012 / I-014 / I-015 / I-016 模型验收合并 main；I-013（分支 I-013-view-modes）与 I-017（分支 I-017-export）转待验收，分支保留。全量 98 文件 406 过 / 0 失败，typecheck 0 错，build exit 0，每条均过 dev 冒烟。
+- 关键修复留痕：Monaco 只动态 import（AC-08，独立 chunk）；UI 面未接线通道（ui.setMarkdownEditorFocused 等）optional-chain 守卫；review 呈现层 / 聊天引用摘除边界落成 10 个 no-op 适配器（预览树全链可渲染）；filePath 分隔符统一 norm 比较；global store 用例间重置。
+- 待验收：I-006（残差 3 条）+ I-013（A6 切换观感）+ I-017（A5 导出观感）。
+- [补空白] 2 条（待同步 ARCHITECTURE，进入规划模式时补）：① compat 层补 setEditorFontZoomLevel（Orca ui-slice 逐字语义，会话级不持久化，见 I-016 过程记录）；② 导出落盘通道 fs:exportDocument 不做工作根越权检查（路径来自系统保存对话框，用户选择即授权，与 fs:writeFile 的差别见 I-017 过程记录）。
+- 下一批：阶段 4 测试收尾与发布（死代码清理 / README / NOTICE / LICENSE / electron-builder 打包），待布置。
