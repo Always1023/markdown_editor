@@ -13,19 +13,33 @@ import { readLocalFileRange } from './filesystem/local-file-io/local-file-range-
 import type { MarkdownDocument } from '@/shared/file-listing/file-document'
 import type { ImportItemResult } from '@/shared/file-import/filesystem-import-result'
 
+// 运行时经「打开文件夹」对话框注册的额外工作根（I-011）：进程内有效，不写入环境变量。
+const runtimeWorkRoots = new Set<string>()
+
+/** 注册并返回解析后的运行时工作根；FileService 的越权检查自此放行该目录。 */
+export function addRuntimeWorkRoot(rootPath: string): string {
+  const resolved = resolve(rootPath)
+  runtimeWorkRoots.add(resolved)
+  return resolved
+}
+
 // 本地形态的工作根：文件操作限制在这些根目录之下（A7 越权拒绝）。
 // dev 与打包后都可从环境变量覆盖；空列表表示未配置（此时拒绝一切写）。
 export function localWorkRoots(): string[] {
   const configured = process.env['MARKDOWN_EDITOR_ROOTS']
-  if (configured && configured.trim().length > 0) {
-    // Windows 路径自带盘符冒号，多根分隔只用分号。
-    return configured
-      .split(';')
-      .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0)
-      .map((entry) => resolve(entry))
+  const base =
+    configured && configured.trim().length > 0
+      ? configured
+          .split(';')
+          .map((entry) => entry.trim())
+          .filter((entry) => entry.length > 0)
+          .map((entry) => resolve(entry))
+      : [resolve(process.cwd())]
+  const merged = new Set(base)
+  for (const root of runtimeWorkRoots) {
+    merged.add(root)
   }
-  return [resolve(process.cwd())]
+  return [...merged]
 }
 
 /** Resolve and require the path to sit under one of the work roots; throws on escape. */
