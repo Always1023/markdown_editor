@@ -1,9 +1,9 @@
 # Issues
 
-当前批次：B3 已交付（I-011 / I-012 / I-014 / I-015 / I-016 模型验收合并；I-013 / I-017 待验收）。下一批：阶段 4 打包与清理（待布置）
+当前批次：B4 = I-018 死代码清理 → I-019 README/NOTICE/LICENSE → I-020 打包（段尾；串行链，I-020 含人验残差）。B3 已交付（I-011 / I-012 / I-014 / I-015 / I-016 合并；I-013 / I-017 待验收）
 
 ## 待决问题
-- 摘除边界重审（关联 I-003 / I-004）：迁移按完整闭包策略执行后，review 呈现层（rich-markdown/review/ 3 文件）与 diff-comment 链（store 切片 + 4 处引用）为无入口触发的死代码；冻结验收 A3 / A4 的「摘净」与本策略冲突。默认答案：阶段 4「清理死代码」时一并评估摘除；影响范围与代价见两 issue 的验收结果表。
+- ~~摘除边界重审（关联 I-003 / I-004）~~ 已关闭（2026-11-22，I-018 可达性全图）：review 呈现层（rich-markdown/review/ 19 文件）与 diff-comment store 切片均被证实是活编辑器链的一部分（原「3 文件死代码」判断不成立）；摘除边界由 I-013 落成的 no-op 适配器承载，无需清理。
 
 ## 阶段 1 · 编辑器内核可验证（M1）
 
@@ -20,7 +20,7 @@
 - I-005 · feature · 完成 · window.api preload 桥（stub）· 模型验收 · B1（2026-11-22 模型验收，合并 main）
 
 ### [editor]
-- I-003 · feature · 待决 · 编辑器子系统迁移，摘除 review / citations（依赖 I-002 / I-004 / I-005）· 模型验收 · B1 —— 代码与测试全绿；review 呈现层 / diff-comment 链残留为死代码（摘除边界见 issue A3 / A4），待决：是否随阶段 4 一并清理
+- I-003 · feature · 完成 · 编辑器子系统迁移，摘除 review / citations（依赖 I-002 / I-004 / I-005）· 模型验收 · B1 —— 代码与测试全绿；摘除边界重审已关闭（2026-11-22 I-018 全图证实 review 呈现层为活链，no-op 适配器承载摘除边界，见待决区）
 
 ### [app]
 - I-006 · feature · 待验收 · 丝滑度 demo 页组装与验收 · 人验收（残差 3 条）· B1 —— 分支 I-006-smooth-demo；机检全过（build / test / demo 渲染 / round-trip），残差 A4 中文输入法 / A5 手感 / A6 观感
@@ -56,7 +56,16 @@
 - 想法：外壳文案接 useTranslate（关联 I-012，硬编码中文集中在 App / TabBar / FileTree / 设置；不做则 i18n 收尾漏掉外壳层）
 
 ## 阶段 4 · 测试收尾与发布（M4）
-- 想法（待拆）：vitest 测试子集收尾与 dom-setup、手工验收清单执行（含 round-trip 10 次保真、外部编辑冲突）、NOTICE.md + LICENSE（MIT，署名 stablyai/orca）+ README、electron-builder 打包与 Releases 发布
+
+当前批次：B4 = I-018 → I-019 → I-020（串行链；段尾 I-020 人验残差）
+
+- I-018 · 重构 · 待办 · 死代码清理（可达性全图：死集 549 文件；test-only 岛与 preload 类型面保留）· 模型验收（行为不变）· B4
+- I-019 · feature · 待办 · README / NOTICE / LICENSE（MIT，署名 stablyai/orca）· 模型验收 · B4
+- I-020 · feature · 待办 · electron-builder 打包（NSIS 安装包 + 静默装/卸闭环；不做 Releases——无远程仓库）· 人验收（残差 1 条：安装与首启观感）· B4 段尾
+
+### 想法（阶段 4 余量）
+- 想法（待拆）：test-only 岛清理（501 模块：monaco DiffViewer 链 + diff-comments 组件 11 文件 + floating-terminal / viewer-viewport / csv / loading 等）——锚定 3 个活代码 save-queue 测试，删除需重写其 fixture；不做则测试面继续背死代码
+- 想法：手工验收清单执行（round-trip 10 次保真、外部编辑冲突）与 Releases 发布（等远程仓库定下再开）
 
 ## 未归类
 （暂无）
