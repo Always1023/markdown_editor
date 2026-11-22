@@ -27,6 +27,18 @@ export type AppApi = {
     worktreeId: string
     rootPath: string
   }) => Promise<{ ok: boolean }>
+  /** 「导出」（I-017）：系统保存对话框；取消时 filePath 为 null。 */
+  chooseExportPath?: (args: {
+    title: string
+    defaultFileName: string
+    filters: Array<{ name: string; extensions: string[] }>
+  }) => Promise<{ filePath: string | null; canceled: boolean }>
+  /** 「导出」（I-017）：把渲染端组装的 HTML 落盘（PDF 走主进程 printToPDF 管线）。 */
+  exportDocument?: (args: {
+    kind: 'html' | 'pdf'
+    filePath: string
+    html: string
+  }) => Promise<{ written: boolean; bytes: number }>
   getSystemLanguageDetection?: (
     browserPreferences?: readonly string[]
   ) => Promise<UiLanguageDetection | null>

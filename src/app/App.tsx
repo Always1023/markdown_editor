@@ -21,6 +21,8 @@ import {
   type WorkspaceFileController
 } from './demo-file-io'
 import { hydrateAppSettings } from './settings-persistence'
+import { buildStandaloneHtml } from './export-html'
+import { chooseExportPath, exportDocument } from './export-client'
 
 // I-013：source 模式经动态 import 挂 Monaco（AC-08 大依赖只走异步 chunk）。
 const LazyMonacoSourceEditor = lazyWithRetry(
@@ -304,6 +306,47 @@ export default function App(): React.JSX.Element {
   // ---- 设置面板（I-016）：左栏底部入口 ----
   const [settingsOpen, setSettingsOpen] = useState(false)
 
+  // ---- 导出（I-017）：顶栏「导出」→ 下拉（HTML / PDF）→ 系统保存对话框 ----
+  const [exportMenuOpen, setExportMenuOpen] = useState(false)
+  const [exportStatus, setExportStatus] = useState<string | null>(null)
+  const runExport = useCallback(
+    async (kind: 'html' | 'pdf'): Promise<void> => {
+      setExportMenuOpen(false)
+      const filePath = activeFileIdRef.current
+        ? controllersRef.current.get(activeFileIdRef.current)?.filePath
+        : undefined
+      const markdown = content
+      if (!filePath || markdown === null) {
+        setExportStatus('没有可导出的文档')
+        return
+      }
+      const base = filePath.split(/[\\/]/).pop() ?? 'document'
+      const stem = base.replace(/\.[mM][dD]$/, '')
+      const ext = kind === 'html' ? 'html' : 'pdf'
+      try {
+        const dialog = await chooseExportPath({
+          title: kind === 'html' ? '导出为 HTML' : '导出为 PDF',
+          defaultFileName: `${stem}.${ext}`,
+          filters:
+            kind === 'html'
+              ? [{ name: 'HTML 文档', extensions: ['html'] }]
+              : [{ name: 'PDF 文档', extensions: ['pdf'] }]
+        })
+        if (dialog.canceled || !dialog.filePath) {
+          setExportStatus('已取消导出')
+          return
+        }
+        const html = buildStandaloneHtml(markdown, stem)
+        await exportDocument({ kind, filePath: dialog.filePath, html })
+        setExportStatus(`已导出：${dialog.filePath}`)
+      } catch (error) {
+        console.error('[export] 导出失败', error)
+        setExportStatus(`导出失败：${error instanceof Error ? error.message : String(error)}`)
+      }
+    },
+    [content]
+  )
+
   // 保存队列写盘成功后清 dirty；用 active 文件 isDirty 下降沿刷新顶栏的「已保存」时间。
   const prevDirtyRef = useRef(false)
   useEffect(() => {
@@ -436,9 +479,16 @@ export default function App(): React.JSX.Element {
         </aside>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="flex items-center justify-between border-b border-border px-2 py-1">
-            <span className="min-w-0 truncate text-xs text-muted-foreground" title={activeController?.filePath ?? ''}>
-              {activeFile?.relativePath ?? ''}
-            </span>
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="min-w-0 truncate text-xs text-muted-foreground" title={activeController?.filePath ?? ''}>
+                {activeFile?.relativePath ?? ''}
+              </span>
+              {exportStatus && (
+                <span data-testid="export-status" className="shrink-0 text-xs text-muted-foreground">
+                  {exportStatus}
+                </span>
+              )}
+            </div>
             <div className="flex shrink-0 items-center gap-2">
               {viewMode === 'rich' && activeFileId && (
                 <button
@@ -451,6 +501,47 @@ export default function App(): React.JSX.Element {
                   目录
                 </button>
               )}
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  data-testid="export-button"
+                  aria-expanded={exportMenuOpen}
+                  className="rounded border border-border bg-background px-2 py-0.5 text-xs hover:bg-muted"
+                  onClick={() => setExportMenuOpen((open) => !open)}
+                >
+                  导出
+                </button>
+                {exportMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-30"
+                      role="presentation"
+                      onClick={() => setExportMenuOpen(false)}
+                    />
+                    <div
+                      data-testid="export-menu"
+                      className="absolute right-0 top-full z-40 mt-1 w-36 rounded-md border border-border bg-background p-1 shadow-lg"
+                    >
+                      <button
+                        type="button"
+                        data-testid="export-html"
+                        className="block w-full rounded px-2 py-1 text-left text-xs hover:bg-muted"
+                        onClick={() => void runExport('html')}
+                      >
+                        导出 HTML
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="export-pdf"
+                        className="block w-full rounded px-2 py-1 text-left text-xs hover:bg-muted"
+                        onClick={() => void runExport('pdf')}
+                      >
+                        导出 PDF
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
               <MarkdownModeSwitcher viewMode={viewMode} onSelectMode={selectMode} />
             </div>
           </div>

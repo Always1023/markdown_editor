@@ -2,6 +2,7 @@
 // runtime.call 走 envelope 包装；dialog 由测试注入（chosenDirectory 供应商）。
 // 只挂 api 到既有 window（重建 window 会断裂 happy-dom 的 document 关联）。
 import { callLocalRuntimeMethod } from '../../../electron/main/runtime-call'
+import { exportDocument } from '../../../electron/main/export'
 import {
   addRuntimeWorkRoot,
   importExternalPaths,
@@ -34,9 +35,14 @@ export function emitFsChanged(
   }
 }
 
-/** 安装 window.api；chooseWorkDir 行为由 deps.chooseWorkDir 提供（缺省取消）。 */
+/** 安装 window.api；chooseWorkDir / chooseExportPath 由 deps 提供（缺省取消）。 */
 export function installDemoWindowApi(deps?: {
   chooseWorkDir?: () => { workDir: string | null; canceled: boolean }
+  chooseExportPath?: (args: {
+    title: string
+    defaultFileName: string
+    filters: Array<{ name: string; extensions: string[] }>
+  }) => { filePath: string | null; canceled: boolean }
 }): void {
   const win = (globalThis as unknown as { window: Record<string, unknown> }).window
   win['api'] = {
@@ -85,7 +91,17 @@ export function installDemoWindowApi(deps?: {
       chooseWorkDir: async () =>
         deps?.chooseWorkDir
           ? deps.chooseWorkDir()
-          : { workDir: null, canceled: true }
+          : { workDir: null, canceled: true },
+      chooseExportPath: async (args: {
+        title: string
+        defaultFileName: string
+        filters: Array<{ name: string; extensions: string[] }>
+      }) =>
+        deps?.chooseExportPath
+          ? deps.chooseExportPath(args)
+          : { filePath: null, canceled: true },
+      exportDocument: async (args: { kind: 'html' | 'pdf'; filePath: string; html: string }) =>
+        await exportDocument(args)
     }
   }
 }
