@@ -45,7 +45,7 @@
 当前批次：B3 = I-011 → I-012 → I-013 → I-014 → I-015 → I-016 → I-017（串行链；段尾 I-013 / I-017 人验残差，段尾不等）
 
 - I-011 · feature · 完成 · 文件树与文件夹工作区（打开文件夹 + 树形列表 + watch 刷新）· 模型验收（2026-11-22 自验 5 条全过）· B3a
-- I-012 · feature · 待办 · 多标签栏（tab bar / 切换 / 关闭 / dirty 标记）· 模型验收 · B3a
+- I-012 · feature · 完成 · 多标签栏（tab bar / 切换 / 关闭 / dirty 标记）· 模型验收（2026-11-22 自验 6 探针全过）· B3a
 - I-013 · feature · 待办 · 三渲染模式（rich / source=Monaco / preview=markdown-preview）· 人验收（残差 1 条：切换观感）· B3a 段尾
 - I-014 · feature · 待办 · TOC 面板（标题层级 + 点击跳转）· 模型验收 · B3b
 - I-015 · feature · 待办 · 编辑器搜索替换（Ctrl+F / 全部替换）· 模型验收 · B3b
