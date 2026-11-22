@@ -59,7 +59,7 @@
 
 当前批次：B4 = I-018 → I-019 → I-020（串行链；段尾 I-020 人验残差）
 
-- I-018 · 重构 · 待办 · 死代码清理（可达性全图：死集 549 文件；test-only 岛与 preload 类型面保留）· 模型验收（行为不变）· B4
+- I-018 · 重构 · 完成 · 死代码清理（实际死集 144 文件 + 24 空目录；test-only 岛与 preload 类型面保留）· 模型验收（2026-11-22 四道门全过，406/0 一致）· B4 —— 合并按链序排队：分支叠于 I-017-export，I-017 人验通过后并入 main
 - I-019 · feature · 待办 · README / NOTICE / LICENSE（MIT，署名 stablyai/orca）· 模型验收 · B4
 - I-020 · feature · 待办 · electron-builder 打包（NSIS 安装包 + 静默装/卸闭环；不做 Releases——无远程仓库）· 人验收（残差 1 条：安装与首启观感）· B4 段尾
 
