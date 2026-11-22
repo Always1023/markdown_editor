@@ -284,6 +284,19 @@ export default function App(): React.JSX.Element {
     []
   )
 
+  // ---- TOC 面板（I-014）：store.markdownTableOfContentsVisible 按 fileId，缺省关 ----
+  const tocVisible = useAppStore((s) =>
+    activeFileId ? (s.markdownTableOfContentsVisible[activeFileId] ?? false) : false
+  )
+  const toggleToc = useCallback((): void => {
+    const fileId = activeFileIdRef.current
+    if (!fileId) {
+      return
+    }
+    const visible = useAppStore.getState().markdownTableOfContentsVisible[fileId] ?? false
+    useAppStore.getState().setMarkdownTableOfContentsVisible(fileId, !visible)
+  }, [])
+
   // 保存队列写盘成功后清 dirty；用 active 文件 isDirty 下降沿刷新顶栏的「已保存」时间。
   const prevDirtyRef = useRef(false)
   useEffect(() => {
@@ -409,7 +422,20 @@ export default function App(): React.JSX.Element {
             <span className="min-w-0 truncate text-xs text-muted-foreground" title={activeController?.filePath ?? ''}>
               {activeFile?.relativePath ?? ''}
             </span>
-            <MarkdownModeSwitcher viewMode={viewMode} onSelectMode={selectMode} />
+            <div className="flex shrink-0 items-center gap-2">
+              {viewMode === 'rich' && activeFileId && (
+                <button
+                  type="button"
+                  data-testid="toc-toggle"
+                  aria-pressed={tocVisible}
+                  className="rounded border border-border bg-background px-2 py-0.5 text-xs hover:bg-muted"
+                  onClick={toggleToc}
+                >
+                  目录
+                </button>
+              )}
+              <MarkdownModeSwitcher viewMode={viewMode} onSelectMode={selectMode} />
+            </div>
           </div>
           <TabBar tabs={tabs} onSelect={activate} onClose={requestClose} />
           {content !== null && activeController && activeFileId && viewMode === 'rich' && (
@@ -423,6 +449,10 @@ export default function App(): React.JSX.Element {
                 worktreeId={DEMO_WORKTREE_ID}
                 runtimeEnvironmentId={null}
                 scrollCacheKey={activeFileId}
+                showTableOfContents={tocVisible}
+                onCloseTableOfContents={() => {
+                  useAppStore.getState().setMarkdownTableOfContentsVisible(activeFileId, false)
+                }}
                 onContentChange={(next) => {
                   setContent(next)
                   useAppStore.getState().setEditorDraft(activeFileId, next)
