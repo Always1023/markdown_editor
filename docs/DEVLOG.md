@@ -28,3 +28,10 @@
 - 待验收：I-006（残差 3 条）+ I-013（A6 切换观感）+ I-017（A5 导出观感）。
 - [补空白] 2 条（待同步 ARCHITECTURE，进入规划模式时补）：① compat 层补 setEditorFontZoomLevel（Orca ui-slice 逐字语义，会话级不持久化，见 I-016 过程记录）；② 导出落盘通道 fs:exportDocument 不做工作根越权检查（路径来自系统保存对话框，用户选择即授权，与 fs:writeFile 的差别见 I-017 过程记录）。
 - 下一批：阶段 4 测试收尾与发布（死代码清理 / README / NOTICE / LICENSE / electron-builder 打包），待布置。
+
+## 2026-11-22 · B4 批次布置（阶段 4：清理与打包）
+
+- 批量盘点：B3 已交付（I-013 / I-017 待验收不阻塞后续）；阶段 4 按人指令（死代码清理、README/NOTICE/LICENSE、electron-builder 打包成可安装成品）拆为 B4 = I-018 → I-019 → I-020 串行链，段尾 I-020 人验残差 1 条。
+- 依据：I-018 先做可达性全图（Explore，2,954 文件静态 import 图）——死集 549 文件删、test-only 岛 501 模块与 src/preload 类型面保留；原「review 呈现层是死代码」判断不成立（活链），待决关闭。
+- 信息需求（不答按默认）：打包目标 = Windows NSIS（本机 win32）；版本号 = package.json 0.1.0；图标 = 暂用 Electron 默认（自制记想法）；发布 = 不做（无远程仓库）。
+- 执行方式：I-018 清单脚本 [先写]（脚本断言活/死分类，删除后四道门：无残留引用 / typecheck / 全量回归 / build+冒烟）；I-019 / I-020 按各自 issue 机检清单走。
