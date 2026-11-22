@@ -73,3 +73,10 @@
 
 - 人实机报告：安装版首启只见白窗无内容（截图留 issue）。诊断探针（CDP 连安装版）本机复跑：DOM 已挂载、界面完整渲染——白屏不稳定复现，指向首启时序（装完即启 + 杀软首扫）或 GPU 合成。
 - 开 I-021（bug，进行中）：堵白屏（GPU 回退 + 崩溃自恢复 + 加载失败重试）并新增单文件 portable 免安装产物；dist\win-unpacked\ 本身即免安装目录。
+
+## 2026-11-22 · I-021 交付：白屏加固 + portable 产物，转待验收
+
+- 修复三件套：disableHardwareAcceleration（软渲染实测 p50 6.65ms，快于 GPU 基线 10ms，零丝滑代价）、主框架加载失败重试 ≤3、渲染进程崩溃自动 reload ≤3；主进程生命周期落盘 %APPDATA%\markdown_editor\main.log（失败可见）。
+- 产物：dist\markdown_editor Setup 0.1.0.exe（安装版 156MB，已静默更新本机安装副本）+ dist\markdown_editor 0.1.0.exe（**portable 单文件免安装**，首启自解压 ~30 秒属正常）。
+- 机检 A1–A5 全过（普通启动实拍、崩溃自恢复 DOM+日志双证、main.log、软渲染延迟、回归 406/0）；变异检查以 main.log 断言变红（禁用恢复后 renderer gone 后无 reload）。详见 docs/issues/I-021.md。
+- 待人验 A6：真机双击 portable / 安装版首启不白屏。
