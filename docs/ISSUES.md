@@ -1,6 +1,6 @@
 # Issues
 
-当前批次：无——B1–B4 全部交付并合并（2026-11-22 收尾：人回复「继续」指示收尾，六分支按链序 --no-ff 并入 main 后删除；B1–B4 全部完成）
+当前批次：B5 = I-021（bug：打包版首启白屏修复 + 免安装 portable 产物；关联 I-020 打回）
 
 ## 待决问题
 - ~~摘除边界重审（关联 I-003 / I-004）~~ 已关闭（2026-11-22，I-018 可达性全图）：review 呈现层（rich-markdown/review/ 19 文件）与 diff-comment store 切片均被证实是活编辑器链的一部分（原「3 文件死代码」判断不成立）；摘除边界由 I-013 落成的 no-op 适配器承载，无需清理。
@@ -61,7 +61,8 @@
 
 - I-018 · 重构 · 完成 · 死代码清理（实际死集 144 文件 + 24 空目录；test-only 岛与 preload 类型面保留）· 模型验收（2026-11-22 四道门全过，406/0 一致）· B4 —— 已按链序 --no-ff 并入 main（79cd15c），分支已删
 - I-019 · feature · 完成 · README / NOTICE / LICENSE（MIT，署名 stablyai/orca）· 模型验收（2026-11-22 四条 grep 门全过）· B4 —— 已按链序 --no-ff 并入 main（914ccdf），分支已删
-- I-020 · feature · 完成 · electron-builder 打包（NSIS 安装包 149MB + 静默装/卸闭环；不做 Releases——无远程仓库）· 人验收（残差 1 条按人指令收尾留痕）· B4 段尾 —— 机检 A1-A4 全过；--no-ff 并入 main（7c9d7c9），分支已删
+- I-020 · feature · 进行中 · electron-builder 打包（NSIS 安装包 149MB + 静默装/卸闭环）· 人验收（残差 1 条）· B4 段尾 —— 已并入 main（7c9d7c9）；2026-11-22 人验打回：首启白屏，修复转 I-021
+- I-021 · bug · 进行中 · 打包版首启白屏（人报告：安装版首启只见白窗无内容）+ 单文件 portable 免安装产物 · 模型验收 · B5 —— 复现证据与修复记录见 docs/issues/I-021.md
 
 ### 想法（阶段 4 余量）
 - 想法（待拆）：test-only 岛清理（501 模块：monaco DiffViewer 链 + diff-comments 组件 11 文件 + floating-terminal / viewer-viewport / csv / loading 等）——锚定 3 个活代码 save-queue 测试，删除需重写其 fixture；不做则测试面继续背死代码

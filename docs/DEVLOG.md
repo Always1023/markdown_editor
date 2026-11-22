@@ -68,3 +68,8 @@
 - 分支清零：I-006-smooth-demo / I-013-view-modes / I-017-export / I-018-dead-code / I-019-docs / I-020-package 六条本地分支 -d 删除（均已合并）；无远程仓库，无推送动作。
 - 看板终稿：B1–B4 全部完成，当前批次清空；遗留想法（test-only 岛清理、依赖瘦身 / 自制图标、Releases 发布、round-trip 手工清单）待人另行布置。
 - 遗留物：空目录 %LOCALAPPDATA%\Programs\markdown_editor（0 文件）仍被句柄占用，按治理记录不清除；验收证据包 7 件在 %TEMP%\me-acceptance\（临时目录，过期可由 scripts/ 探针重生成）。
+
+## 2026-11-22 · I-020 人验打回：首启白屏 → 开 I-021
+
+- 人实机报告：安装版首启只见白窗无内容（截图留 issue）。诊断探针（CDP 连安装版）本机复跑：DOM 已挂载、界面完整渲染——白屏不稳定复现，指向首启时序（装完即启 + 杀软首扫）或 GPU 合成。
+- 开 I-021（bug，进行中）：堵白屏（GPU 回退 + 崩溃自恢复 + 加载失败重试）并新增单文件 portable 免安装产物；dist\win-unpacked\ 本身即免安装目录。
