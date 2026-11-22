@@ -80,3 +80,9 @@
 - 产物：dist\markdown_editor Setup 0.1.0.exe（安装版 156MB，已静默更新本机安装副本）+ dist\markdown_editor 0.1.0.exe（**portable 单文件免安装**，首启自解压 ~30 秒属正常）。
 - 机检 A1–A5 全过（普通启动实拍、崩溃自恢复 DOM+日志双证、main.log、软渲染延迟、回归 406/0）；变异检查以 main.log 断言变红（禁用恢复后 renderer gone 后无 reload）。详见 docs/issues/I-021.md。
 - 待人验 A6：真机双击 portable / 安装版首启不白屏。
+
+## 2026-11-22 · 机器使用硬约束（用户两次投诉卡顿后立此为据）
+
+- 本机是用户日常在用的机器：全量测试、electron-builder 打包、批量构建等重负载任务，**未经用户当轮同意不得执行**；必须跑时单次跑完、限并发（vitest --maxWorkers=2）、并在回复里预告负载。
+- 每次收工确认我的进程全部退出（vitest worker / electron / electron-builder 是已知会残留的）。
+- 用户的自有服务（如 @deepseek-ai/dsh、npm run dev 下的 vite）不在清理范围，禁止 Stop-Process。
