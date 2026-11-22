@@ -37,6 +37,8 @@
 
 ### 想法（阶段 2 余量）
 - 想法：独立自动保存控制器的参数调优（防抖 / 静默窗口）——内核控制器已随 I-003 迁移，I-009 验证生效后如参数不适再单开
+- 想法 · bug：长耗时测试（markdown-preview-table-chunks 单跑 ~6.2s）在 vitest 默认并发池下被资源竞争拖超时偶挂（I-008 期间两轮全量各挂一个不同文件，单跑均过；--maxWorkers=2 稳定全绿）——不做则 CI / 全量回归证据不稳定；处理方向：该测试降敏或调 pool 并发
+- 想法 · bug：长耗时测试（markdown-preview-table-chunks 单跑 ~6.2s）在 vitest 默认并发池下被资源竞争拖超时偶挂（I-008 期间两轮全量各挂一个不同文件，单跑均过；--maxWorkers=2 稳定全绿）——不做则 CI / 全量回归证据不稳定；处理方向：该测试降敏或调 pool 并发
 
 ## 阶段 3 · 产品外壳（M3）
 - 想法（待拆）：文件树（打开文件夹）、多标签、状态栏（保存态 / 模式 / 缩放）、三渲染模式（source = Monaco 动态加载、preview = markdown-preview 移植）、TOC 面板、双链 useMarkdownDocuments 适配本地 fs、设置面板、全局搜索替换、导出 HTML / PDF、i18n 收尾
