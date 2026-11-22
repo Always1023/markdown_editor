@@ -5,9 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   main: {
-    // I-022 瘦身：chokidar 打进 main bundle（v6 纯 JS 可打包），其余依赖维持外部化——
-    // 它们只会被渲染端用到且已由 vite 打进渲染 bundle，asar 不再需要 node_modules。
-    plugins: [externalizeDepsPlugin({ exclude: ['chokidar'] })],
+    plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
         '@': resolve('src')
@@ -20,7 +18,7 @@ export default defineConfig({
     }
   },
   preload: {
-    plugins: [],
+    plugins: [externalizeDepsPlugin()],
     build: {
       rollupOptions: {
         input: { index: resolve('electron/preload/index.ts') }

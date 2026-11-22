@@ -1,7 +1,6 @@
-# I-020 electron-builder 配置：Windows NSIS 安装包 + portable 单文件。
-# 产物结构：electron-vite 的 out/（main / preload / renderer 三段）+ package.json。
-# I-022 瘦身：主进程只外部化 chokidar（其余依赖已被 vite 打进 out/ 的 bundle，
-# 不再让 electron-builder 把 64 个生产依赖重复塞进 asar）；语言包只留中英。
+# I-020 electron-builder 配置：Windows NSIS 安装包。
+# 产物结构：electron-vite 的 out/（main / preload / renderer 三段）+ package.json
+# + 生产依赖（electron-builder 自动打包 dependencies）；app 源码不进安装包。
 appId: dev.markdowneditor.app
 productName: markdown_editor
 directories:
@@ -9,10 +8,6 @@ directories:
 files:
   - out/**
   - package.json
-  - "!node_modules/**"
-electronLanguages:
-  - en-US
-  - zh-CN
 win:
   target:
     - target: nsis
