@@ -176,7 +176,7 @@ export async function importExternalPaths(args: {
   await mkdir(dest, { recursive: true })
   const results: ImportItemResult[] = []
   for (const source of args.sourcePaths) {
-    const resolvedSource = requirePathInWorkRoots(source)
+    const resolvedSource = requireImportSourcePath(source)
     const name = basename(resolvedSource)
     const ext = extname(name)
     const stem = name.slice(0, name.length - ext.length)
@@ -207,6 +207,21 @@ async function pathExistsUnchecked(target: string): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+/**
+ * import 的来源校验：工作根内，或系统临时目录——后者只承载本应用
+ * saveImageAsTempFile 产出的截图临时文件（拷入文档目录即完成迁移，源文件
+ * 不被引用）。destDir 仍严格限制在工作根内。
+ */
+function requireImportSourcePath(source: string): string {
+  const resolved = resolve(source)
+  const { tmpdir } = require('node:os') as typeof import('node:os')
+  const tmp = resolve(tmpdir())
+  if (resolved === tmp || resolved.startsWith(tmp.endsWith('\\') ? tmp : tmp + '\\')) {
+    return resolved
+  }
+  return requirePathInWorkRoots(resolved)
 }
 
 /** 收集目录树下的 Markdown 文档（阶段 3 文件树复用；I-009 只开单文件）。 */
@@ -251,10 +266,17 @@ export async function saveImageAsTempFile(args: {
   contentBase64: string
 }): Promise<string> {
   const { tmpdir } = await import('node:os')
+  // 命名随 Orca 的 agentSessionPastedImageName（orca-paste-<now>-<unique>.<ext>）：
+  // 扩展名按字节签名判定，agents 信任扩展而非字节。
+  const buffer = Buffer.from(args.contentBase64, 'base64')
+  const { detectImageFileExtension } = await import(
+    '@/shared/file-content/image-file-signature'
+  )
+  const extension = detectImageFileExtension(buffer) ?? 'png'
   const target = join(
     tmpdir(),
-    `markdown-editor-paste-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`
+    `orca-paste-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`
   )
-  await fsPromises.writeFile(target, Buffer.from(args.contentBase64, 'base64'))
+  await fsPromises.writeFile(target, buffer)
   return target
 }
