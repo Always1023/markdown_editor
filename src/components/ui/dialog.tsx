@@ -12,7 +12,7 @@ import { handleOverlayCloseAutoFocus } from '@/lib/overlay-interaction/overlay-f
 import { OverlayFocusScope, useOverlayFocusScope } from '@/components/ui/use-overlay-focus-scope.ts'
 import { handleImeOverlayEscape } from '@/lib/text-input/ime/ime-overlay-escape'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
 import {
   DialogLayoutContext,
@@ -101,12 +101,14 @@ function DialogContentCloseButton({ variant }: { variant: 'close' | 'minimize' }
     </DialogPrimitive.Close>
   )
   return variant === 'minimize' ? (
-    <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side="top" sideOffset={4}>
-        {label}
-      </TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent side="top" sideOffset={4}>
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   ) : (
     button
   )

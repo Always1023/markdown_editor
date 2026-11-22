@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
 import { getRichMarkdownTableControlLayout } from './rich-markdown-table-control-layout'
 import { useRichMarkdownTableContextMenu } from './use-rich-markdown-table-context-menu'
@@ -61,25 +61,27 @@ function TableControlButton({
   style: React.CSSProperties
 }): React.JSX.Element {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-xs"
-          className={`rich-markdown-table-control ${className}`}
-          style={style}
-          aria-label={label}
-          onClick={onClick}
-          data-axis={axis}
-        >
-          {icon}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="top" sideOffset={4}>
-        {label}
-      </TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xs"
+            className={`rich-markdown-table-control ${className}`}
+            style={style}
+            aria-label={label}
+            onClick={onClick}
+            data-axis={axis}
+          >
+            {icon}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" sideOffset={4}>
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 }
 
@@ -117,26 +119,28 @@ function TableActionMenu({
   }
   return (
     <DropdownMenu onOpenChange={onOpenChange}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-xs"
-              className="rich-markdown-table-axis-control rich-markdown-table-control"
-              style={style}
-              aria-label={label}
-              data-axis={axis}
-            >
-              {isRow ? <GripVertical /> : <GripHorizontal />}
-            </Button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={4}>
-          {label}
-        </TooltipContent>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-xs"
+                className="rich-markdown-table-axis-control rich-markdown-table-control"
+                style={style}
+                aria-label={label}
+                data-axis={axis}
+              >
+                {isRow ? <GripVertical /> : <GripHorizontal />}
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="top" sideOffset={4}>
+            {label}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DropdownMenuContent align="start" side={isRow ? 'right' : 'bottom'}>
         <DropdownMenuItem
           disabled={isRow && isHeader}
